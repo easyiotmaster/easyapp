@@ -39,11 +39,13 @@
 #include "xmlConsoleDialog.h"
 #include "tcpserver.h"
 #include "src/client/QXmppClient.h"
-
+#include "tcpsetdialog.h"
+#include "iniconfig.h"
 class chatDialog;
 
 class QKeyEvent;
 
+class TcpSetDialog;
 namespace Ui
 {
     class mainDialogClass;
@@ -55,7 +57,9 @@ class mainDialog : public QDialog
 
 public:
     mainDialog(QWidget *parent = 0);
-
+    void setTcpServerPort(quint16 port);//设置tcp服务器端口号
+    bool startTcpServer();
+    void stopTcpServer();
 protected:
     void keyPressEvent(QKeyEvent*);
     void closeEvent(QCloseEvent* event);
@@ -87,7 +91,9 @@ private slots:
     void addAccountToCache();
     void presenceReceived(const QXmppPresence&);
     void errorClient(QXmppClient::Error);
-    void loadUserConfig();
+
+    void loadUserConfig();//登录后读取用户配置信息
+
 
     void action_addContact();
     void action_removeContact(const QString& bareJid);
@@ -132,8 +138,9 @@ private:
     QAction m_signOutAction;
 
     xmlConsoleDialog m_consoleDlg;
-
+    TcpSetDialog m_tcpSetDlg;// Tcp 设置界面
     QMenu* m_settingsMenu;
-};
 
+    IniConfig m_iniConfig;//用户配置
+};
 #endif // MAINDIALOG_H

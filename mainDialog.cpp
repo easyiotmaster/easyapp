@@ -54,8 +54,8 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
 
     m_quitAction("Quit", this),
     m_signOutAction("Sign out", this),
+    m_tcpSetDlg(this),
     m_settingsMenu(0)
-
 {
     bool check;
     Q_UNUSED(check);
@@ -123,6 +123,9 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
                     SLOT(messageReceived(QXmppMessage)));
     Q_ASSERT(check);
 
+    check = connect(&m_xmppClient,SIGNAL(messageReceived(QXmppMessage)),
+                    &m_tcpServer,SLOT(sendRecvMessage(QXmppMessage)));
+
     check = connect(ui->pushButton_signIn, SIGNAL(clicked(bool)), SLOT(signIn()));
     Q_ASSERT(check);
 
@@ -166,8 +169,8 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     check = connect(&m_xmppClient,SIGNAL(connected()),SLOT(loadUserConfig()));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient,SIGNAL(connected()),&m_tcpServer,SLOT(startAccept()));
-    Q_ASSERT(check);
+    //check = connect(&m_xmppClient,SIGNAL(connected()),&m_tcpServer,SLOT(startAccept()));
+    //Q_ASSERT(check);
 
     check = connect(&m_xmppClient, SIGNAL(disconnected()), SLOT(showSignInPageAfterUserDisconnection()));
     Q_ASSERT(check);
@@ -202,6 +205,7 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
 
     check = connect(&m_tcpServer,SIGNAL(setPresenceStatus(QString)),SLOT(statusTextChanged(QString)));
     Q_ASSERT(check);
+
 }
 
 void mainDialog::rosterChanged(const QString& bareJid)
@@ -236,6 +240,8 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
     m_rosterItemModel.updatePresence(bareJid, presences);
 
     QXmppPresence& pre = presences[resource];
+
+    m_tcpServer.sendRecvPresence(jid,pre);
 
     if(pre.type() == QXmppPresence::Available)
     {
@@ -447,7 +453,7 @@ void mainDialog::avatarChanged(const QImage& image)
 void mainDialog::updateStatusWidget()
 {
     const QString bareJid = m_xmppClient.configuration().jidBare();
-
+    qDebug()<<bareJid;
     // initialise status widget
     updateVCard(bareJid);
     m_statusWidget.setStatusText(presenceToStatusText(m_xmppClient.clientPresence()));
@@ -879,18 +885,25 @@ void mainDialog::errorClient(QXmppClient::Error error)
 
 void mainDialog::loadUserConfig()
 {
-    QString path = getSettingsDir(m_xmppClient.configuration().jidBare());
-    QDir dir;
-    if(!dir.exists(path))
-        dir.mkpath(path);
+    m_iniConfig.loadConfigFromJid(m_xmppClient.configuration().jidBare());
 
-    QString configFileName = path + "config.ini";
+    m_tcpServer.setTcpPort(m_iniConfig.getTcpServerPort());
+}
 
-    QSettings configSettings(configFileName,QSettings::IniFormat);
-    quint16 port = configSettings.value("tcp_server/port",0).toUInt();
-    if(port != 0)
-        m_tcpServer.setTcpPort(port);
-    configSettings.setValue("tcp_server/port",m_tcpServer.tcpPort());
+void mainDialog::setTcpServerPort(quint16 port)
+{
+    m_tcpServer.setTcpPort(port);
+    m_iniConfig.setTcpServerPort(port);
+}
+
+bool mainDialog::startTcpServer()
+{
+    return m_tcpServer.startAccept();
+}
+
+void mainDialog::stopTcpServer()
+{
+    m_tcpServer.stopAccept();
 }
 
 void mainDialog::action_showXml()
@@ -931,21 +944,7 @@ void mainDialog::action_settingsPressed()
 
 void mainDialog::action_tcpServerSet()
 {
-    bool ok;
-    QString portStr = QInputDialog::getText(this, "Set Listening Port",
-                                            "Port:", QLineEdit::Normal, "", &ok);
-
-    if(!ok)
-    {
-        //QMessageBox::about(this,"Set Listening Port","")
-        return;
-    }
-    quint16 port = portStr.toUInt(&ok);
-    if(!ok || port == 0)
-    {
-        QMessageBox::about(this,"Set Listening Port","Set Listening Port Failed !");
-        return;
-    }
-
+    m_tcpSetDlg.setShowTcpServerPort(m_tcpServer.tcpPort());
+    m_tcpSetDlg.open();
 
 }

@@ -26,7 +26,9 @@ SOURCES += main.cpp \
     accountsCache.cpp \
     xmlConsoleDialog.cpp \
     aboutDialog.cpp \
-    tcpserver.cpp
+    tcpserver.cpp \
+    tcpsetdialog.cpp \
+    iniconfig.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -50,14 +52,17 @@ HEADERS += chatMsgGraphicsItem.h \
     accountsCache.h \
     xmlConsoleDialog.h \
     aboutDialog.h \
-    tcpserver.h
+    tcpserver.h \
+    tcpsetdialog.h \
+    iniconfig.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
     statusWidget.ui \
     profileDialog.ui \
     xmlConsoleDialog.ui \
-    aboutDialog.ui
+    aboutDialog.ui \
+    tcpsetdialog.ui
 
 QT += network \
     xml \
