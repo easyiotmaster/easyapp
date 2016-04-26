@@ -22,30 +22,14 @@ private:
     quint16     m_port;
     QXmppTranslator* m_translator;
 public:
-    enum JSON_ERROR
-    {
-        OK = 0,
-        NO_JSON,
-        NO_JSON_OBJECT,
-        NO_TYPE,
-        TYPE_ERROR,
-        SM_NO_TO,
-        SM_JID_ERROR,
-        SP_NO_PRESENCE
-    };
-
     explicit TcpServer(QXmppClient* client,QObject* parent = 0);
     ~TcpServer();
 
-
     quint16 tcpPort();
-
+    bool    isAccept();
 signals:
     void sendMessage(const QString &jid,const QString &body);
     void setPresenceStatus(const QString &status);
-private:
-    JSON_ERROR recvSendMessage(const QJsonObject &jsonObject);
-    JSON_ERROR recvSetPresence(const QJsonObject &jsonObject);
 public slots:
     void setTcpPort(quint16 port);
     bool startAccept();

@@ -971,6 +971,7 @@ void mainDialog::action_settingsPressed()
 void mainDialog::action_tcpServerSet()
 {
     m_tcpSetDlg.setShowTcpServerPort(m_tcpServer.tcpPort());
-    m_tcpSetDlg.open();
+    m_tcpSetDlg.setTcpServerStatus(m_tcpServer.isAccept());
+    m_tcpSetDlg.show();
 
 }

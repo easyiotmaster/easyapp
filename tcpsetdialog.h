@@ -16,6 +16,7 @@ public:
     ~TcpSetDialog();
 
     void setShowTcpServerPort(quint16 port);
+    void setTcpServerStatus(bool accept);
 signals:
     void setTcpServerPort(quint16 port);
     void startTcpServer();

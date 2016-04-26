@@ -41,7 +41,10 @@ quint16 TcpServer::tcpPort()
     return m_port;
 }
 
-
+bool TcpServer::isAccept()
+{
+    return m_tcpServer->isListening();
+}
 
 void TcpServer::setTcpPort(quint16 port)
 {

@@ -19,6 +19,13 @@ TcpSetDialog::~TcpSetDialog()
 void TcpSetDialog::setShowTcpServerPort(quint16 port)
 {
     ui->lab_port->setText(QObject::tr("Port:%1").arg(port));
+    ui->ldt_port->setText(QObject::tr("%1").arg(port));
+}
+
+void TcpSetDialog::setTcpServerStatus(bool accept)
+{
+    ui->btn_startaccept->setEnabled(!accept);
+    ui->btn_stopaccept->setEnabled(accept);
 }
 
 void TcpSetDialog::on_btn_setport_clicked()
