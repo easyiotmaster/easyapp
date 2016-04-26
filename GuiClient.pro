@@ -28,7 +28,10 @@ SOURCES += main.cpp \
     aboutDialog.cpp \
     tcpserver.cpp \
     tcpsetdialog.cpp \
-    iniconfig.cpp
+    iniconfig.cpp \
+    qxmpptranslator.cpp \
+    qxmpptranslatordelegate.cpp \
+    qxmpptranslatorjsondelegate.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -54,7 +57,10 @@ HEADERS += chatMsgGraphicsItem.h \
     aboutDialog.h \
     tcpserver.h \
     tcpsetdialog.h \
-    iniconfig.h
+    iniconfig.h \
+    qxmpptranslator.h \
+    qxmpptranslatordelegate.h \
+    qxmpptranslatorjsondelegate.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \

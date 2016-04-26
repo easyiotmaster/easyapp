@@ -29,6 +29,7 @@
 #include <QMap>
 #include <QSystemTrayIcon>
 #include <QMenu>
+#include <QMap>
 
 #include "rosterItemModel.h"
 #include "rosterItemSortFilterProxyModel.h"
@@ -41,6 +42,7 @@
 #include "src/client/QXmppClient.h"
 #include "tcpsetdialog.h"
 #include "iniconfig.h"
+
 class chatDialog;
 
 class QKeyEvent;
@@ -142,5 +144,7 @@ private:
     QMenu* m_settingsMenu;
 
     IniConfig m_iniConfig;//用户配置
+
+    QMap<QString,bool> onlineMap;
 };
 #endif // MAINDIALOG_H

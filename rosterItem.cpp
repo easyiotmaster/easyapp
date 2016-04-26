@@ -24,7 +24,7 @@
 
 #include "rosterItem.h"
 #include <QImage>
-
+#include <QDebug>
 rosterItem::rosterItem(const QString& bareJid)
 {
     setData(bareJid, rosterItem::BareJid);

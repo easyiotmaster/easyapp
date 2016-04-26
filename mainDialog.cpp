@@ -169,9 +169,6 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     check = connect(&m_xmppClient,SIGNAL(connected()),SLOT(loadUserConfig()));
     Q_ASSERT(check);
 
-    //check = connect(&m_xmppClient,SIGNAL(connected()),&m_tcpServer,SLOT(startAccept()));
-    //Q_ASSERT(check);
-
     check = connect(&m_xmppClient, SIGNAL(disconnected()), SLOT(showSignInPageAfterUserDisconnection()));
     Q_ASSERT(check);
 
@@ -239,9 +236,35 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
                                              getAllPresencesForBareJid(bareJid);
     m_rosterItemModel.updatePresence(bareJid, presences);
 
-    QXmppPresence& pre = presences[resource];
 
-    m_tcpServer.sendRecvPresence(jid,pre);
+    if(presences.contains(resource))
+    {
+        QXmppPresence& presence = presences[resource];
+        if(!onlineMap.contains(jid))
+        {
+            onlineMap.insert(jid,false);
+        }
+
+        if(presence.type() == QXmppPresence::Available && onlineMap.value(jid,true) == false)
+        {
+            m_tcpServer.sendOnline(jid,true);
+            onlineMap[jid] = true;
+        }
+        else if(presence.type() == QXmppPresence::Unavailable && onlineMap.value(jid,false) == true)
+        {
+            m_tcpServer.sendOnline(jid,false);
+            onlineMap[jid] = false;
+        }
+
+        m_tcpServer.sendRecvPresence(jid,presence);
+    }
+    else if(onlineMap.contains(jid) && onlineMap.value(jid,false) == true)
+    {
+        m_tcpServer.sendOnline(jid,false);
+        onlineMap[jid] = false;
+    }
+
+    QXmppPresence& pre = presences[resource];
 
     if(pre.type() == QXmppPresence::Available)
     {
@@ -395,6 +418,7 @@ void mainDialog::statusTextChanged(const QString& status)
     presence.setStatusText(status);
     addPhotoHash(presence);
     m_xmppClient.setClientPresence(presence);
+    m_statusWidget.setStatusText(status);
 }
 
 void mainDialog::presenceTypeChanged(QXmppPresence::Type presenceType)
@@ -523,6 +547,8 @@ void mainDialog::showSignInPageAfterUserDisconnection()
 
     showLoginStatus("Disconnected");
     showSignInPage();
+
+    onlineMap.clear();
 }
 
 void mainDialog::showRosterPage()

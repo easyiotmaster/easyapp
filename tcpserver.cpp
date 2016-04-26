@@ -7,10 +7,21 @@
 #include "QXmppUtils.h"
 TcpServer::TcpServer(QXmppClient* client, QObject *parent):QObject(parent),client(client)
 {
+    bool check;
+
     m_tcpServer = new QTcpServer(this);
     m_port = DEFAULT_SERVER_PORT;
     m_tcpServer->setMaxPendingConnections(MAX_SOCKET_LENGTH);
-    connect(m_tcpServer,SIGNAL(newConnection()),this,SLOT(newConnect()));
+    m_translator = new QXmppTranslator(this);
+
+    check = connect(m_tcpServer,SIGNAL(newConnection()),this,SLOT(newConnect()));
+    Q_ASSERT(check);
+
+    check = connect(m_translator,SIGNAL(sendMessage(QString,QString)),SIGNAL(sendMessage(QString,QString)));
+    Q_ASSERT(check);
+
+    check = connect(m_translator,SIGNAL(setPresenceStatus(QString)),SIGNAL(setPresenceStatus(QString)));
+    Q_ASSERT(check);
 }
 
 TcpServer::~TcpServer()
@@ -30,37 +41,7 @@ quint16 TcpServer::tcpPort()
     return m_port;
 }
 
-TcpServer::JSON_ERROR TcpServer::recvSendMessage(const QJsonObject &jsonObject)
-{
-    JSON_ERROR errorCode = TcpServer::OK;
-    if(jsonObject.contains("TO"))
-    {
-        QString bareJid = QXmppUtils::jidToBareJid(jsonObject.value("TO").toString(""));
-        QString body = jsonObject.value("BODY").toString("");
-        if(bareJid == "")
-            errorCode = TcpServer::SM_JID_ERROR;
-        else
-            emit sendMessage(bareJid,body);
-    }
-    else
-        errorCode = TcpServer::SM_NO_TO;
-    return errorCode;
-}
 
-TcpServer::JSON_ERROR TcpServer::recvSetPresence(const QJsonObject &jsonObject)
-{
-    JSON_ERROR errorCode = TcpServer::OK;
-    if(jsonObject.contains("PRESENCE"))
-    {
-        QString status = jsonObject.value("PRESENCE").toString("");
-
-        emit setPresenceStatus(status);
-    }
-    else
-        errorCode = TcpServer::SP_NO_PRESENCE;
-
-    return errorCode;
-}
 
 void TcpServer::setTcpPort(quint16 port)
 {
@@ -86,26 +67,33 @@ void TcpServer::stopAccept()
     m_socketList.clear();
 }
 
-void TcpServer::sendRecvMessage(const QXmppMessage& msg)
+void TcpServer::sendRecvMessage(const QXmppMessage &msg)
 {
     if (msg.body().isEmpty())
-        return;
-
-    QString jid = msg.from();
-    QString body = msg.body();
-
-    QString ackStr = QObject::tr("{\"TYPE\":1,\"FROM\":\"%1\",\"BODY\":\"%2\"}").arg(jid).arg(body);
+            return;
+    QByteArray packet;
+    m_translator->getRecvMessagePacket(msg,packet);
 
     for(int i = 0;i < m_socketList.size();++i)
-        m_socketList[i]->write(ackStr.toLatin1(),ackStr.length());
+        m_socketList[i]->write(packet);
 }
 
-void TcpServer::sendRecvPresence(const QString& jid, const QXmppPresence& pre)
+void TcpServer::sendRecvPresence(const QString &jid, const QXmppPresence &pre)
 {
-    QString ackStr = QObject::tr("{\"TYPE\":3,\"FROM\":\"%1\",\"PRESENCE\":\"%2\"}").arg(jid).arg(pre.statusText());
+    QByteArray packet;
+    m_translator->getRecvPresencePacket(jid,pre,packet);
 
     for(int i = 0;i < m_socketList.size();++i)
-        m_socketList[i]->write(ackStr.toLatin1(),ackStr.length());
+        m_socketList[i]->write(packet);
+}
+
+void TcpServer::sendOnline(const QString &jid, bool online)
+{
+    QByteArray packet;
+    m_translator->getOnlinePacket(jid,online,packet);
+
+    for(int i = 0;i < m_socketList.size();++i)
+        m_socketList[i]->write(packet);
 }
 
 void TcpServer::newConnect()
@@ -149,46 +137,9 @@ void TcpServer::readData()
     QTcpSocket *tcpSocket = (QTcpSocket*)sender();
     QByteArray data = tcpSocket->readAll();
 
-    JSON_ERROR errorCode = TcpServer::OK;
+    QByteArray ackData;
+    m_translator->recvData(data,ackData);
 
-    QJsonParseError jsonError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(data,&jsonError);
-    if(jsonError.error == QJsonParseError::NoError)
-    {
-        if(jsonDoc.isObject())
-        {
-            QJsonObject obj = jsonDoc.object();
-            if(obj.contains("TYPE"))
-            {
-                int type = obj.value("TYPE").toInt(-1);
-                switch(type)
-                {
-                case -1:
-                    break;
-                case 0:
-                    //SENDMESSAGE;
-                    errorCode = recvSendMessage(obj);
-                    break;
-                case 2:
-                    //SETPRESENCE
-                    errorCode = recvSetPresence(obj);
-                    break;
-                default:
-                    errorCode = TcpServer::TYPE_ERROR;
-                    break;
-                }
-            }
-            else
-                errorCode = TcpServer::NO_TYPE;
+    tcpSocket->write(ackData);
 
-        }
-        else
-            errorCode = TcpServer::NO_JSON_OBJECT;
-    }
-    else
-        errorCode = TcpServer::NO_JSON;
-
-    QString errorAckStr = QObject::tr("{\"ERROR\":%1}").arg(errorCode);
-
-    tcpSocket->write(errorAckStr.toLatin1(),errorAckStr.length());
 }
