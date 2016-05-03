@@ -33,6 +33,7 @@ rosterListView::rosterListView(QWidget* parent)
     , m_chat("Chat", this)
     , m_profile("View Profile", this)
     , m_removeContact("Remove", this)
+    , m_ota("OTA Set",this)
 {
     bool check;
     Q_UNUSED(check);
@@ -57,6 +58,9 @@ rosterListView::rosterListView(QWidget* parent)
     check = connect(&m_removeContact, SIGNAL(triggered()), this,
                          SLOT(removeContact_helper()));
     Q_ASSERT(check);
+
+    check = connect(&m_ota,SIGNAL(triggered(bool)),SLOT(OTASet_helper()));
+    Q_ASSERT(check);
 }
 
 bool rosterListView::event(QEvent* e)
@@ -72,6 +76,7 @@ void rosterListView::mousePressed(const QModelIndex& index)
         QMenu menu(this);
         menu.addAction(&m_chat);
         menu.setDefaultAction(&m_chat);
+        menu.addAction(&m_ota);
         menu.addAction(&m_profile);
         menu.addAction(&m_removeContact);
         menu.exec(QCursor::pos());
@@ -125,4 +130,11 @@ void rosterListView::removeContact_helper()
     QString bareJid = selectedBareJid();
     if(!bareJid.isEmpty())
         emit removeContact(bareJid);
+}
+
+void rosterListView::OTASet_helper()
+{
+    QString bareJid = selectedBareJid();
+    if(!bareJid.isEmpty())
+        emit showOTASet(bareJid);
 }

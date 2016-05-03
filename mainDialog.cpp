@@ -111,6 +111,9 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
                     this, SLOT(showChatDialog(QString)));
     Q_ASSERT(check);
 
+    check = connect(ui->listView,SIGNAL(showOTASet(QString)),SLOT(showOTADialog(QString)));
+    Q_ASSERT(check);
+
     check = connect(ui->listView, SIGNAL(showProfile(QString)),
                     this, SLOT(showProfile(QString)));
     Q_ASSERT(check);
@@ -236,6 +239,8 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
                                              getAllPresencesForBareJid(bareJid);
     m_rosterItemModel.updatePresence(bareJid, presences);
 
+    if(m_otaDlgsList.value(bareJid,0) != 0)
+        m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
 
     if(presences.contains(resource))
     {
@@ -245,12 +250,12 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
             onlineMap.insert(jid,false);
         }
 
-        if(presence.type() == QXmppPresence::Available && onlineMap.value(jid,true) == false)
+        if(presence.type() == QXmppPresence::Available && onlineMap.value(jid,true) == false)//上线
         {
             m_tcpServer.sendOnline(jid,true);
             onlineMap[jid] = true;
         }
-        else if(presence.type() == QXmppPresence::Unavailable && onlineMap.value(jid,false) == true)
+        else if(presence.type() == QXmppPresence::Unavailable && onlineMap.value(jid,false) == true)//下线
         {
             m_tcpServer.sendOnline(jid,false);
             onlineMap[jid] = false;
@@ -394,10 +399,40 @@ chatDialog* mainDialog::getChatDialog(const QString& bareJid)
     return m_chatDlgsList[bareJid];
 }
 
+OTASetDialog *mainDialog::getOTADialog(const QString &bareJid)
+{
+    if(!m_otaDlgsList.contains(bareJid))
+    {
+        m_otaDlgsList[bareJid] = new OTASetDialog();
+        m_otaDlgsList[bareJid]->setBareJid(bareJid);
+
+        if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid))
+            return 0;
+        //m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+        /*if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid)->
+           getName().isEmpty())
+            m_otaDlgsList[bareJid]->setDisplayName(m_rosterItemModel.
+                                                getRosterItemFromBareJid(bareJid)->getName());
+        else
+            m_otaDlgsList[bareJid]->setDisplayName(QXmppUtils::jidToUser(bareJid));*/
+
+        m_otaDlgsList[bareJid]->setQXmppClient(&m_xmppClient);
+    }
+    m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+    return m_otaDlgsList[bareJid];
+}
+
 void mainDialog::showChatDialog(const QString& bareJid)
 {
     if(!bareJid.isEmpty())
         getChatDialog(bareJid)->show();
+}
+
+void mainDialog::showOTADialog(const QString &bareJid)
+{
+    qDebug()<<__func__;
+    if(!bareJid.isEmpty())
+        getOTADialog(bareJid)->show();
 }
 
 void mainDialog::messageReceived(const QXmppMessage& msg)

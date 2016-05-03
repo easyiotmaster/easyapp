@@ -21,11 +21,10 @@ signals:
     void setTcpServerPort(quint16 port);
     void startTcpServer();
     void stopTcpServer();
+
 private slots:
     void on_btn_setport_clicked();
-
     void on_btn_startaccept_clicked();
-
     void on_btn_stopaccept_clicked();
 
 private:

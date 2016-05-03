@@ -45,6 +45,7 @@ private slots:
     void showChatDialog_helper();
     void showProfile_helper();
     void removeContact_helper();
+    void OTASet_helper();
 
 protected:
     void keyPressEvent(QKeyEvent*);
@@ -53,6 +54,7 @@ signals:
     void showChatDialog(const QString& bareJid);
     void showProfile(const QString& bareJid);
     void removeContact(const QString& bareJid);
+    void showOTASet(const QString &bareJid);
 
 private:
     QString selectedBareJid();
@@ -61,6 +63,7 @@ private:
     QAction m_chat;
     QAction m_profile;
     QAction m_removeContact;
+    QAction m_ota;
 };
 
 #endif // ROSTERLISTVIEW_H

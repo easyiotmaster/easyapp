@@ -29,7 +29,6 @@
 #include <QMap>
 #include <QSystemTrayIcon>
 #include <QMenu>
-#include <QMap>
 
 #include "rosterItemModel.h"
 #include "rosterItemSortFilterProxyModel.h"
@@ -42,7 +41,7 @@
 #include "src/client/QXmppClient.h"
 #include "tcpsetdialog.h"
 #include "iniconfig.h"
-
+#include "otasetdialog.h"
 class chatDialog;
 
 class QKeyEvent;
@@ -72,6 +71,7 @@ private slots:
     void presenceChanged(const QString&, const QString&);
     void filterChanged(const QString& filter);
     void showChatDialog(const QString& bareJid);
+    void showOTADialog(const QString &bareJid);//显示OTA设置页面
     void messageReceived(const QXmppMessage& msg);
     void statusTextChanged(const QString&);
     void presenceTypeChanged(QXmppPresence::Type);
@@ -93,7 +93,6 @@ private slots:
     void addAccountToCache();
     void presenceReceived(const QXmppPresence&);
     void errorClient(QXmppClient::Error);
-
     void loadUserConfig();//登录后读取用户配置信息
 
 
@@ -111,13 +110,12 @@ private:
     void loadAccounts();
     void createTrayIconAndMenu();
     void createSettingsMenu();
-
     void addPhotoHash(QXmppPresence&);
 
 
 
     chatDialog* getChatDialog(const QString& bareJid);
-
+    OTASetDialog* getOTADialog(const QString &bareJid);
     Ui::mainDialogClass* ui;
     QXmppClient m_xmppClient;
     rosterItemModel m_rosterItemModel;
@@ -129,7 +127,7 @@ private:
 
     // map of bare jids and respective chatdlg
     QMap<QString, chatDialog*> m_chatDlgsList;
-
+    QMap<QString,OTASetDialog*> m_otaDlgsList;
     TcpServer   m_tcpServer;
 #ifndef QT_NO_SYSTEMTRAYICON
     QSystemTrayIcon m_trayIcon;

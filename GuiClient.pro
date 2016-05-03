@@ -31,7 +31,8 @@ SOURCES += main.cpp \
     iniconfig.cpp \
     qxmpptranslator.cpp \
     qxmpptranslatordelegate.cpp \
-    qxmpptranslatorjsondelegate.cpp
+    qxmpptranslatorjsondelegate.cpp \
+    otasetdialog.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -60,7 +61,8 @@ HEADERS += chatMsgGraphicsItem.h \
     iniconfig.h \
     qxmpptranslator.h \
     qxmpptranslatordelegate.h \
-    qxmpptranslatorjsondelegate.h
+    qxmpptranslatorjsondelegate.h \
+    otasetdialog.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
@@ -68,7 +70,8 @@ FORMS += mainDialog.ui \
     profileDialog.ui \
     xmlConsoleDialog.ui \
     aboutDialog.ui \
-    tcpsetdialog.ui
+    tcpsetdialog.ui \
+    otasetdialog.ui
 
 QT += network \
     xml \
