@@ -6,13 +6,17 @@
 class IniConfig
 {
 private:
-    QSettings*   configSettings;
+    //QSettings*   configSettings;
 public:
     explicit IniConfig();
 
-    void loadConfigFromJid(const QString &jidBare);
-    quint16 getTcpServerPort();
-    bool    setTcpServerPort(quint16 port);
+    //void loadConfigFromJid(const QString &jidBare);
+    static quint16 getTcpServerPort(const QString &jidBare);
+    static void    setTcpServerPort(quint16 port,const QString &jidBare);
+
+    static QString getConfigFileName(const QString &jidBare);
+    static QString getRemoteDownloadPath(const QString &jidBare);
+    static void    setRemoteDownloadPath(const QString &path,const QString &jidBare);
 };
 
 #endif // INICONFIG_H

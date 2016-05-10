@@ -440,10 +440,20 @@ void mainDialog::messageReceived(const QXmppMessage& msg)
     if (msg.body().isEmpty())
         return;
 
+    int msgType = 0;
+    OTASetDialog* otaDialog = getOTADialog((QXmppUtils::jidToBareJid(msg.from())));
+    if(otaDialog)
+    {
+        msgType = otaDialog->recvClientMessage(msg.body());
+    }
     chatDialog *dialog = getChatDialog(QXmppUtils::jidToBareJid(msg.from()));
-    if (dialog) {
-        dialog->show();
-        dialog->messageReceived(msg.body());
+    if (dialog)
+    {
+        if(msgType == 0)
+        {
+            dialog->show();
+            dialog->messageReceived(msg.body());
+        }
     }
 }
 
@@ -946,15 +956,13 @@ void mainDialog::errorClient(QXmppClient::Error error)
 
 void mainDialog::loadUserConfig()
 {
-    m_iniConfig.loadConfigFromJid(m_xmppClient.configuration().jidBare());
-
-    m_tcpServer.setTcpPort(m_iniConfig.getTcpServerPort());
+    m_tcpServer.setTcpPort(IniConfig::getTcpServerPort(m_xmppClient.configuration().jidBare()));
 }
 
 void mainDialog::setTcpServerPort(quint16 port)
 {
     m_tcpServer.setTcpPort(port);
-    m_iniConfig.setTcpServerPort(port);
+    IniConfig::setTcpServerPort(port,m_xmppClient.configuration().jidBare());
 }
 
 bool mainDialog::startTcpServer()

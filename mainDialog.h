@@ -141,8 +141,6 @@ private:
     TcpSetDialog m_tcpSetDlg;// Tcp 设置界面
     QMenu* m_settingsMenu;
 
-    IniConfig m_iniConfig;//用户配置
-
     QMap<QString,bool> onlineMap;
 };
 #endif // MAINDIALOG_H
