@@ -136,6 +136,7 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
                     SLOT(cancelSignIn()));
     Q_ASSERT(check);
 
+    check = connect(ui->pushButton_wechatSignIn,SIGNAL(clicked(bool)),SLOT(wechatSignIn()));
     m_rosterItemSortFilterModel.setSourceModel(&m_rosterItemModel);
     ui->listView->setModel(&m_rosterItemSortFilterModel);
     m_rosterItemSortFilterModel.sort(0);
@@ -558,6 +559,11 @@ void mainDialog::signIn()
     m_capabilitiesCache.loadFromFile();
 
     startConnection();
+}
+
+void mainDialog::wechatSignIn()
+{
+    m_otherPlatformsSignIn.signIn(OtherPlatformsSignIn::WECHAT);
 }
 
 void mainDialog::cancelSignIn()

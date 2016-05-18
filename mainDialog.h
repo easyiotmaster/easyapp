@@ -42,6 +42,7 @@
 #include "tcpsetdialog.h"
 #include "iniconfig.h"
 #include "otasetdialog.h"
+#include "otherplatformssignin.h"
 class chatDialog;
 
 class QKeyEvent;
@@ -77,6 +78,7 @@ private slots:
     void presenceTypeChanged(QXmppPresence::Type);
     void presenceStatusTypeChanged(QXmppPresence::AvailableStatusType);
     void signIn();
+    void wechatSignIn();
     void cancelSignIn();
     void showSignInPage();
     void showSignInPageAfterUserDisconnection();
@@ -124,7 +126,7 @@ private:
     vCardCache m_vCardCache;
     capabilitiesCache m_capabilitiesCache;
     accountsCache m_accountsCache;
-
+    OtherPlatformsSignIn    m_otherPlatformsSignIn;
     // map of bare jids and respective chatdlg
     QMap<QString, chatDialog*> m_chatDlgsList;
     QMap<QString,OTASetDialog*> m_otaDlgsList;

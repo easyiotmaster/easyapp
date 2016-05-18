@@ -32,7 +32,10 @@ SOURCES += main.cpp \
     qxmpptranslator.cpp \
     qxmpptranslatordelegate.cpp \
     qxmpptranslatorjsondelegate.cpp \
-    otasetdialog.cpp
+    otasetdialog.cpp \
+    webchannel/websocketclientwrapper.cpp \
+    webchannel/websockettransport.cpp \
+    otherplatformssignin.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -62,7 +65,10 @@ HEADERS += chatMsgGraphicsItem.h \
     qxmpptranslator.h \
     qxmpptranslatordelegate.h \
     qxmpptranslatorjsondelegate.h \
-    otasetdialog.h
+    otasetdialog.h \
+    webchannel/websocketclientwrapper.h \
+    webchannel/websockettransport.h \
+    otherplatformssignin.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
@@ -75,7 +81,9 @@ FORMS += mainDialog.ui \
 
 QT += network \
     xml \
-    widgets
+    widgets \
+    webchannel \
+    websockets
 
 RESOURCES += resources.qrc
 CONFIG(debug, debug|release) {

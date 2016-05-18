@@ -97,7 +97,7 @@ void OTASetDialog::remoteDownload()
     lockUI(true);
     if(m_currentResource.isEmpty())
     {
-        QMessageBox::about(this,tr("OTA"),tr("resource不能为空！"));
+        QMessageBox::about(this,QObject::tr("OTA"),QObject::tr("resource不能为空！"));
         lockUI(false);
         return;
     }
@@ -172,7 +172,7 @@ void OTASetDialog::currentSourceChange(int index)
 void OTASetDialog::replyFinish(QNetworkReply *reply)
 {
     QByteArray arr = reply->readAll();
-    qDebug()<<__func__<<arr;
+    qDebug()<<__FUNCTION__<<arr;
     QString result(arr);
 
     ui->txd_downloadlog->append(result);
@@ -203,7 +203,7 @@ void OTASetDialog::replyFinished()
 
     QByteArray arr = reply->readAll();
 
-    qDebug()<<__func__<<arr;
+    qDebug()<<__FUNCTION__<<arr;
 }
 
 void OTASetDialog::replyError(QNetworkReply::NetworkError error)
@@ -325,7 +325,7 @@ int OTASetDialog::recvClientMessage(const QString &msg)
         QString downSizeStr,totalSizeStr;
         if(strList.size() != 2)
         {
-            ui->txd_downloadlog->append(tr("DOWN下载长度解析失败！"));
+            ui->txd_downloadlog->append(QObject::tr("DOWN下载长度解析失败！"));
             lockUI(false);
             return 1;
         }
@@ -334,7 +334,7 @@ int OTASetDialog::recvClientMessage(const QString &msg)
             strList = strList[1].split(',');
             if(strList.size() != 2)
             {
-                ui->txd_downloadlog->append(tr("DOWN下载长度解析失败！"));
+                ui->txd_downloadlog->append(QObject::tr("DOWN下载长度解析失败！"));
                 lockUI(false);
                 return 1;
             }

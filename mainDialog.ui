@@ -365,6 +365,13 @@
         </spacer>
        </item>
        <item>
+        <widget class="QPushButton" name="pushButton_wechatSignIn">
+         <property name="text">
+          <string>微信登录</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>Host:</string>
