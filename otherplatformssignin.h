@@ -11,10 +11,11 @@ class WebSocketServerHelper :public QObject
 {
     Q_OBJECT
 signals:
-     void sendText(const QString &text);
-
+    void sendText(const QString &text);
+    void login(const QString &userName,const QString &password);
 public slots:
     void receiveText(const QString &text);
+    void signIn(const QString &userName,const QString &password);
 };
 
 
@@ -34,7 +35,7 @@ public:
     explicit OtherPlatformsSignIn(QObject *parent = 0);
     ~OtherPlatformsSignIn();
 signals:
-
+    void signIn(const QString &userName,const QString &password );
 public slots:
     void signIn(SIGNIN_PLATFORM platform);
 };

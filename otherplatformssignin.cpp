@@ -3,9 +3,8 @@
 #include <QUrl>
 OtherPlatformsSignIn::OtherPlatformsSignIn(QObject *parent) : QObject(parent)
 {
+
     m_server = new QWebSocketServer("QWebChannel Standalone Example Server", QWebSocketServer::NonSecureMode);
-    //m_server.setServerName(QStringLiteral("QWebChannel Standalone Example Server"));
-    //m_server.setSslConfiguration(QWebSocketServer::NonSecureMode);
 
     if (!m_server->listen(QHostAddress::LocalHost, 12345))
     {
@@ -16,10 +15,14 @@ OtherPlatformsSignIn::OtherPlatformsSignIn(QObject *parent) : QObject(parent)
     m_clientWrapper = new WebSocketClientWrapper(m_server);
 
     // setup the channel
-    QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,
-                     &m_channel, &QWebChannel::connectTo);
+    bool check;
+    check = QObject::connect(m_clientWrapper, &WebSocketClientWrapper::clientConnected,&m_channel, &QWebChannel::connectTo);
+    Q_ASSERT(check);
 
     m_channel.registerObject(QStringLiteral("dialog"), &m_socketHelper);
+
+    check = connect(&m_socketHelper,SIGNAL(login(QString,QString)),SIGNAL(signIn(QString,QString)));
+    Q_ASSERT(check);
 }
 
 OtherPlatformsSignIn::~OtherPlatformsSignIn()
@@ -40,11 +43,16 @@ void OtherPlatformsSignIn::signIn(OtherPlatformsSignIn::SIGNIN_PLATFORM platform
     default:
         break;
     }
-
+    qDebug()<<url;
     QDesktopServices::openUrl(url);
 }
 
 void WebSocketServerHelper::receiveText(const QString &text)
 {
     qDebug()<<"recvive message form websocket clietn:"<<text;
+}
+
+void WebSocketServerHelper::signIn(const QString &userName, const QString &password)
+{
+    emit login(userName,password);
 }

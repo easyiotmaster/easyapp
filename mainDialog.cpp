@@ -137,6 +137,11 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     Q_ASSERT(check);
 
     check = connect(ui->pushButton_wechatSignIn,SIGNAL(clicked(bool)),SLOT(wechatSignIn()));
+    Q_ASSERT(check);
+
+    check = connect(&m_otherPlatformsSignIn,SIGNAL(signIn(QString,QString)),SLOT(signIn(QString,QString)));
+    Q_ASSERT(check);
+
     m_rosterItemSortFilterModel.setSourceModel(&m_rosterItemModel);
     ui->listView->setModel(&m_rosterItemSortFilterModel);
     m_rosterItemSortFilterModel.sort(0);
@@ -546,6 +551,34 @@ void mainDialog::signIn()
 
     QString bareJid = ui->lineEdit_userName->text();
     QString passwd = ui->lineEdit_password->text();
+
+    m_xmppClient.configuration().setJid(bareJid);
+    m_xmppClient.configuration().setPassword(passwd);
+
+    m_xmppClient.configuration().setHost(/*"jareymobile.com.tw"*/ui->lineEdit_host->text());
+    m_xmppClient.configuration().setPort(/*20030*/ui->lineEdit_port->text().toInt());
+
+    m_rosterItemModel.clear();
+
+    m_vCardCache.loadFromFile();
+    m_capabilitiesCache.loadFromFile();
+
+    startConnection();
+}
+
+void mainDialog::signIn(const QString &userName, const QString &password)
+{
+    ui->label_throbber->show();
+    ui->pushButton_signIn->setDisabled(true);
+    ui->pushButton_cancel->setDisabled(false);
+    ui->lineEdit_userName->setDisabled(true);
+    ui->lineEdit_password->setDisabled(true);
+    ui->checkBox_rememberPasswd->setDisabled(true);
+    showLoginStatusWithProgress("Connecting");
+    ui->lineEdit_userName->setText(userName);
+    ui->lineEdit_password->setText(password);
+    QString bareJid = userName;
+    QString passwd = password;
 
     m_xmppClient.configuration().setJid(bareJid);
     m_xmppClient.configuration().setPassword(passwd);

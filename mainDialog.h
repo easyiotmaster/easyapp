@@ -78,6 +78,7 @@ private slots:
     void presenceTypeChanged(QXmppPresence::Type);
     void presenceStatusTypeChanged(QXmppPresence::AvailableStatusType);
     void signIn();
+    void signIn(const QString &userName,const QString &password);
     void wechatSignIn();
     void cancelSignIn();
     void showSignInPage();
