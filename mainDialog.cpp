@@ -70,70 +70,51 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     showSignInPage();
     loadAccounts();
 
-    check = connect(ui->lineEdit_userName->completer(),
-                         SIGNAL(activated(QString)),
-                         this, SLOT(userNameCompleter_activated(QString)));
+    check = connect(ui->lineEdit_userName->completer(),SIGNAL(activated(QString)),this, SLOT(userNameCompleter_activated(QString)));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient.rosterManager(),
-                         SIGNAL(rosterReceived()),
-                         this, SLOT(rosterReceived()));
+    check = connect(&m_xmppClient.rosterManager(),SIGNAL(rosterReceived()),this, SLOT(rosterReceived()));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient.rosterManager(),
-                         SIGNAL(itemChanged(QString)),
-                         this, SLOT(rosterChanged(QString)));
+    check = connect(&m_xmppClient.rosterManager(),SIGNAL(itemChanged(QString)),this, SLOT(rosterChanged(QString)));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient,
-                         SIGNAL(error(QXmppClient::Error)),
-                         this, SLOT(errorClient(QXmppClient::Error)));
+    check = connect(&m_xmppClient,SIGNAL(error(QXmppClient::Error)),this, SLOT(errorClient(QXmppClient::Error)));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient,
-                         SIGNAL(presenceReceived(QXmppPresence)),
-                         this, SLOT(presenceReceived(QXmppPresence)));
+    check = connect(&m_xmppClient,SIGNAL(presenceReceived(QXmppPresence)),this, SLOT(presenceReceived(QXmppPresence)));
     Q_ASSERT(check);
 
     QXmppLogger::getLogger()->setLoggingType(QXmppLogger::SignalLogging);
 
 
-    check = connect(&m_xmppClient.rosterManager(),
-                    SIGNAL(presenceChanged(QString,QString)),
-                    this, SLOT(presenceChanged(QString,QString)));
+    check = connect(&m_xmppClient.rosterManager(),SIGNAL(presenceChanged(QString,QString)),this, SLOT(presenceChanged(QString,QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->lineEdit_filter, SIGNAL(textChanged(QString)),
-                    this, SLOT(filterChanged(QString)));
+    check = connect(ui->lineEdit_filter, SIGNAL(textChanged(QString)),this, SLOT(filterChanged(QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->listView, SIGNAL(showChatDialog(QString)),
-                    this, SLOT(showChatDialog(QString)));
+    check = connect(ui->listView, SIGNAL(showChatDialog(QString)),this, SLOT(showChatDialog(QString)));
     Q_ASSERT(check);
 
     check = connect(ui->listView,SIGNAL(showOTASet(QString)),SLOT(showOTADialog(QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->listView, SIGNAL(showProfile(QString)),
-                    this, SLOT(showProfile(QString)));
+    check = connect(ui->listView, SIGNAL(showProfile(QString)),this, SLOT(showProfile(QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->listView, SIGNAL(removeContact(QString)),
-                    this, SLOT(action_removeContact(QString)));
+    check = connect(ui->listView, SIGNAL(removeContact(QString)),this, SLOT(action_removeContact(QString)));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient, SIGNAL(messageReceived(QXmppMessage)),
-                    SLOT(messageReceived(QXmppMessage)));
+    check = connect(&m_xmppClient, SIGNAL(messageReceived(QXmppMessage)),SLOT(messageReceived(QXmppMessage)));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient,SIGNAL(messageReceived(QXmppMessage)),
-                    &m_tcpServer,SLOT(sendRecvMessage(QXmppMessage)));
+    check = connect(&m_xmppClient,SIGNAL(messageReceived(QXmppMessage)),&m_tcpServer,SLOT(sendRecvMessage(QXmppMessage)));
 
     check = connect(ui->pushButton_signIn, SIGNAL(clicked(bool)), SLOT(signIn()));
     Q_ASSERT(check);
 
-    check = connect(ui->pushButton_cancel, SIGNAL(clicked(bool)),
-                    SLOT(cancelSignIn()));
+    check = connect(ui->pushButton_cancel, SIGNAL(clicked(bool)),SLOT(cancelSignIn()));
     Q_ASSERT(check);
 
     check = connect(ui->pushButton_wechatSignIn,SIGNAL(clicked(bool)),SLOT(wechatSignIn()));
@@ -151,19 +132,16 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     ui->listView->setFocus();
     ui->verticalLayout_3->insertWidget(0, &m_statusWidget);
 
-    check = connect(&m_statusWidget, SIGNAL(statusTextChanged(QString)),
-                    SLOT(statusTextChanged(QString)));
+    check = connect(&m_statusWidget, SIGNAL(statusTextChanged(QString)),SLOT(statusTextChanged(QString)));
     Q_ASSERT(check);
-    check = connect(&m_statusWidget, SIGNAL(presenceTypeChanged(QXmppPresence::Type)),
-                    SLOT(presenceTypeChanged(QXmppPresence::Type)));
+
+    check = connect(&m_statusWidget, SIGNAL(presenceTypeChanged(QXmppPresence::Type)),SLOT(presenceTypeChanged(QXmppPresence::Type)));
     Q_ASSERT(check);
-    check = connect(&m_statusWidget,
-                    SIGNAL(presenceStatusTypeChanged(QXmppPresence::AvailableStatusType)),
-                    SLOT(presenceStatusTypeChanged(QXmppPresence::AvailableStatusType)));
+
+    check = connect(&m_statusWidget,SIGNAL(presenceStatusTypeChanged(QXmppPresence::AvailableStatusType)),SLOT(presenceStatusTypeChanged(QXmppPresence::AvailableStatusType)));
     Q_ASSERT(check);
-    check = connect(&m_statusWidget,
-                    SIGNAL(avatarChanged(QImage)),
-                    SLOT(avatarChanged(QImage)));
+
+    check = connect(&m_statusWidget,SIGNAL(avatarChanged(QImage)),SLOT(avatarChanged(QImage)));
     Q_ASSERT(check);
 
     check = connect(&m_xmppClient, SIGNAL(connected()), SLOT(updateStatusWidget()));
@@ -182,28 +160,21 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     Q_ASSERT(check);
 
     check = connect(&m_xmppClient,SIGNAL(disconnected()),&m_tcpServer,SLOT(stopAccept()));
-    check = connect(&m_xmppClient.vCardManager(),
-                    SIGNAL(vCardReceived(QXmppVCardIq)), &m_vCardCache,
-                    SLOT(vCardReceived(QXmppVCardIq)));
     Q_ASSERT(check);
 
-    check = connect(&m_vCardCache,
-                    SIGNAL(vCardReadyToUse(QString)),
-                    SLOT(updateVCard(QString)));
+    check = connect(&m_xmppClient.vCardManager(),SIGNAL(vCardReceived(QXmppVCardIq)), &m_vCardCache,SLOT(vCardReceived(QXmppVCardIq)));
+    Q_ASSERT(check);
+
+    check = connect(&m_vCardCache,SIGNAL(vCardReadyToUse(QString)),SLOT(updateVCard(QString)));
     Q_ASSERT(check);
 
     check = connect(ui->pushButton_addContact, SIGNAL(clicked()), SLOT(action_addContact()));
     Q_ASSERT(check);
 
-    check = connect(QXmppLogger::getLogger(),
-                 SIGNAL(message(QXmppLogger::MessageType,QString)),
-                 &m_consoleDlg,
-                 SLOT(message(QXmppLogger::MessageType,QString)));
+    check = connect(QXmppLogger::getLogger(),SIGNAL(message(QXmppLogger::MessageType,QString)),&m_consoleDlg,SLOT(message(QXmppLogger::MessageType,QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->pushButton_settings,
-                 SIGNAL(pressed()),
-                 SLOT(action_settingsPressed()));
+    check = connect(ui->pushButton_settings,SIGNAL(pressed()),SLOT(action_settingsPressed()));
     Q_ASSERT(check);
 
     check = connect(&m_tcpServer,SIGNAL(sendMessage(QString,QString)),&m_xmppClient,SLOT(sendMessage(QString,QString)));
@@ -247,6 +218,9 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
 
     if(m_otaDlgsList.value(bareJid,0) != 0)
         m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+
+    if(m_debugDlgList.value(bareJid,0) != 0)
+        m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
 
     if(presences.contains(resource))
     {
@@ -414,13 +388,6 @@ OTASetDialog *mainDialog::getOTADialog(const QString &bareJid)
 
         if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid))
             return 0;
-        //m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
-        /*if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid)->
-           getName().isEmpty())
-            m_otaDlgsList[bareJid]->setDisplayName(m_rosterItemModel.
-                                                getRosterItemFromBareJid(bareJid)->getName());
-        else
-            m_otaDlgsList[bareJid]->setDisplayName(QXmppUtils::jidToUser(bareJid));*/
 
         m_otaDlgsList[bareJid]->setQXmppClient(&m_xmppClient);
     }
@@ -428,10 +395,34 @@ OTASetDialog *mainDialog::getOTADialog(const QString &bareJid)
     return m_otaDlgsList[bareJid];
 }
 
+DebugDialog *mainDialog::getDebugDialog(const QString &bareJid)
+{
+    if(!m_debugDlgList.contains(bareJid))
+    {
+        if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid))
+            return 0;
+        m_debugDlgList[bareJid] = new DebugDialog;
+        m_debugDlgList[bareJid]->setBareJid(bareJid);
+        if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid)->getName().isEmpty())
+            m_debugDlgList[bareJid]->setDisplayName(m_rosterItemModel.getRosterItemFromBareJid(bareJid)->getName());
+        else
+            m_debugDlgList[bareJid]->setDisplayName(QXmppUtils::jidToUser(bareJid));
+        m_debugDlgList[bareJid]->setQXmppClient(&m_xmppClient);
+        m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+    }
+    return m_debugDlgList[bareJid];
+}
+
 void mainDialog::showChatDialog(const QString& bareJid)
 {
+    /*if(!bareJid.isEmpty())
+        getChatDialog(bareJid)->show();*/
+
     if(!bareJid.isEmpty())
-        getChatDialog(bareJid)->show();
+    {
+        getDebugDialog(bareJid)->hide();
+        getDebugDialog(bareJid)->show();
+    }
 }
 
 void mainDialog::showOTADialog(const QString &bareJid)
@@ -446,13 +437,14 @@ void mainDialog::messageReceived(const QXmppMessage& msg)
     if (msg.body().isEmpty())
         return;
 
-    int msgType = 0;
+    //int msgType = 0;
     OTASetDialog* otaDialog = getOTADialog((QXmppUtils::jidToBareJid(msg.from())));
     if(otaDialog)
     {
-        msgType = otaDialog->recvClientMessage(msg.body());
+        //msgType = otaDialog->recvClientMessage(msg.body());
     }
-    chatDialog *dialog = getChatDialog(QXmppUtils::jidToBareJid(msg.from()));
+
+    /*chatDialog *dialog = getChatDialog(QXmppUtils::jidToBareJid(msg.from()));
     if (dialog)
     {
         if(msgType == 0)
@@ -460,6 +452,12 @@ void mainDialog::messageReceived(const QXmppMessage& msg)
             dialog->show();
             dialog->messageReceived(msg.body());
         }
+    }*/
+
+    DebugDialog *debugDialog = getDebugDialog(QXmppUtils::jidToBareJid(msg.from()));
+    if(debugDialog)
+    {
+        debugDialog->messageReceived(msg);
     }
 }
 
@@ -498,7 +496,7 @@ void mainDialog::presenceStatusTypeChanged(QXmppPresence::AvailableStatusType st
     addPhotoHash(presence);
     m_xmppClient.setClientPresence(presence);
     m_statusWidget.setStatusText(
-            presenceToStatusText(m_xmppClient.clientPresence()));
+    presenceToStatusText(m_xmppClient.clientPresence()));
 }
 
 void mainDialog::avatarChanged(const QImage& image)
@@ -627,6 +625,12 @@ void mainDialog::showSignInPageAfterUserDisconnection()
     if(!ui->checkBox_rememberPasswd->isChecked())
         ui->lineEdit_password->setText("");
 
+    QMap<QString,DebugDialog*>::iterator m_iterator;
+    for(m_iterator = m_debugDlgList.begin();m_iterator !=  m_debugDlgList.end();++m_iterator)
+    {
+       delete m_iterator.value();
+    }
+    m_debugDlgList.clear();
     ui->label_throbber->hide();
 
     showLoginStatus("Disconnected");
@@ -877,6 +881,10 @@ void mainDialog::action_addContact()
 void mainDialog::presenceReceived(const QXmppPresence& presence)
 {
     QString from = presence.from();
+
+    QString bareJid = QXmppUtils::jidToBareJid(from);
+    if(getDebugDialog(bareJid))
+        getDebugDialog(bareJid)->presenceReceived(presence);
 
     QString message;
     switch(presence.type())

@@ -27,6 +27,7 @@ private:
     QWebSocketServer*       m_server;
     WebSocketClientWrapper* m_clientWrapper;
     QWebChannel             m_channel;
+    uint                    m_port;
 public:
     enum SIGNIN_PLATFORM
     {

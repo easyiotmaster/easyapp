@@ -35,7 +35,9 @@ SOURCES += main.cpp \
     otasetdialog.cpp \
     webchannel/websocketclientwrapper.cpp \
     webchannel/websockettransport.cpp \
-    otherplatformssignin.cpp
+    otherplatformssignin.cpp \
+    debugdialog.cpp \
+    messagelog.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -68,7 +70,9 @@ HEADERS += chatMsgGraphicsItem.h \
     otasetdialog.h \
     webchannel/websocketclientwrapper.h \
     webchannel/websockettransport.h \
-    otherplatformssignin.h
+    otherplatformssignin.h \
+    debugdialog.h \
+    messagelog.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
@@ -77,7 +81,8 @@ FORMS += mainDialog.ui \
     xmlConsoleDialog.ui \
     aboutDialog.ui \
     tcpsetdialog.ui \
-    otasetdialog.ui
+    otasetdialog.ui \
+    debugdialog.ui
 
 QT += network \
     xml \

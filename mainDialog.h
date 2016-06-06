@@ -43,6 +43,7 @@
 #include "iniconfig.h"
 #include "otasetdialog.h"
 #include "otherplatformssignin.h"
+#include "debugdialog.h"
 class chatDialog;
 
 class QKeyEvent;
@@ -115,10 +116,10 @@ private:
     void createSettingsMenu();
     void addPhotoHash(QXmppPresence&);
 
+    chatDialog*     getChatDialog(const QString& bareJid);
+    OTASetDialog*   getOTADialog(const QString &bareJid);
+    DebugDialog*    getDebugDialog(const QString &bareJid);
 
-
-    chatDialog* getChatDialog(const QString& bareJid);
-    OTASetDialog* getOTADialog(const QString &bareJid);
     Ui::mainDialogClass* ui;
     QXmppClient m_xmppClient;
     rosterItemModel m_rosterItemModel;
@@ -129,8 +130,9 @@ private:
     accountsCache m_accountsCache;
     OtherPlatformsSignIn    m_otherPlatformsSignIn;
     // map of bare jids and respective chatdlg
-    QMap<QString, chatDialog*> m_chatDlgsList;
-    QMap<QString,OTASetDialog*> m_otaDlgsList;
+    QMap<QString, chatDialog*>  m_chatDlgsList;//聊天窗口口列表
+    QMap<QString,OTASetDialog*> m_otaDlgsList;//ota窗口列表
+    QMap<QString,DebugDialog*>  m_debugDlgList;//debug窗口列表
     TcpServer   m_tcpServer;
 #ifndef QT_NO_SYSTEMTRAYICON
     QSystemTrayIcon m_trayIcon;
@@ -145,5 +147,6 @@ private:
     QMenu* m_settingsMenu;
 
     QMap<QString,bool> onlineMap;
+
 };
 #endif // MAINDIALOG_H

@@ -158,9 +158,6 @@ void OTASetDialog::remoteDownload()
 
     m_lastDownloadAction = UPLOAD_TO_HTTPSERVER;
     m_downTimer->start(10000);
-    //m_file->close();
-    //m_file->deleteLater();
-    //multiPart->deleteLater();
 }
 
 void OTASetDialog::currentSourceChange(int index)

@@ -6,9 +6,10 @@ OtherPlatformsSignIn::OtherPlatformsSignIn(QObject *parent) : QObject(parent)
 
     m_server = new QWebSocketServer("QWebChannel Standalone Example Server", QWebSocketServer::NonSecureMode);
 
-    if (!m_server->listen(QHostAddress::LocalHost, 12345))
+    m_port = 12345;
+    while(!m_server->listen(QHostAddress::LocalHost, m_port))
     {
-        qFatal("Failed to open web socket server.");
+        m_port = 1000+qrand()%60000;
     }
 
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
@@ -38,7 +39,8 @@ void OtherPlatformsSignIn::signIn(OtherPlatformsSignIn::SIGNIN_PLATFORM platform
     switch(platform)
     {
     case WECHAT:
-        url = QUrl("http://115.28.44.147/hqq/index.html?webChannelBaseUrl=ws://127.0.0.1:12345");
+        //url = QUrl(QObject::tr("http://www.easy-iot.cc/qqconnect/example//index.html?webChannelBaseUrl=ws://127.0.0.1:%1").arg(m_port));
+        url = QUrl(QObject::tr("http://www.easy-iot.cc/qqconnect/example/oauth/index.php?port=%1").arg(m_port));
         break;
     default:
         break;
