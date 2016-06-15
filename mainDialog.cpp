@@ -97,9 +97,6 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     check = connect(ui->listView, SIGNAL(showChatDialog(QString)),this, SLOT(showChatDialog(QString)));
     Q_ASSERT(check);
 
-    check = connect(ui->listView,SIGNAL(showOTASet(QString)),SLOT(showOTADialog(QString)));
-    Q_ASSERT(check);
-
     check = connect(ui->listView, SIGNAL(showProfile(QString)),this, SLOT(showProfile(QString)));
     Q_ASSERT(check);
 
@@ -215,9 +212,6 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
     QMap<QString, QXmppPresence> presences = m_xmppClient.rosterManager().
                                              getAllPresencesForBareJid(bareJid);
     m_rosterItemModel.updatePresence(bareJid, presences);
-
-    if(m_otaDlgsList.value(bareJid,0) != 0)
-        m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
 
     if(m_debugDlgList.value(bareJid,0) != 0)
         m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
@@ -379,22 +373,6 @@ chatDialog* mainDialog::getChatDialog(const QString& bareJid)
     return m_chatDlgsList[bareJid];
 }
 
-OTASetDialog *mainDialog::getOTADialog(const QString &bareJid)
-{
-    if(!m_otaDlgsList.contains(bareJid))
-    {
-        m_otaDlgsList[bareJid] = new OTASetDialog();
-        m_otaDlgsList[bareJid]->setBareJid(bareJid);
-
-        if(!m_rosterItemModel.getRosterItemFromBareJid(bareJid))
-            return 0;
-
-        m_otaDlgsList[bareJid]->setQXmppClient(&m_xmppClient);
-    }
-    m_otaDlgsList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
-    return m_otaDlgsList[bareJid];
-}
-
 DebugDialog *mainDialog::getDebugDialog(const QString &bareJid)
 {
     if(!m_debugDlgList.contains(bareJid))
@@ -415,9 +393,6 @@ DebugDialog *mainDialog::getDebugDialog(const QString &bareJid)
 
 void mainDialog::showChatDialog(const QString& bareJid)
 {
-    /*if(!bareJid.isEmpty())
-        getChatDialog(bareJid)->show();*/
-
     if(!bareJid.isEmpty())
     {
         getDebugDialog(bareJid)->hide();
@@ -425,33 +400,16 @@ void mainDialog::showChatDialog(const QString& bareJid)
     }
 }
 
-void mainDialog::showOTADialog(const QString &bareJid)
-{
-    qDebug()<<__func__;
-    if(!bareJid.isEmpty())
-        getOTADialog(bareJid)->show();
-}
-
 void mainDialog::messageReceived(const QXmppMessage& msg)
 {
     if (msg.body().isEmpty())
         return;
 
-    //int msgType = 0;
-    OTASetDialog* otaDialog = getOTADialog((QXmppUtils::jidToBareJid(msg.from())));
-    if(otaDialog)
-    {
-        //msgType = otaDialog->recvClientMessage(msg.body());
-    }
-
     /*chatDialog *dialog = getChatDialog(QXmppUtils::jidToBareJid(msg.from()));
     if (dialog)
     {
-        if(msgType == 0)
-        {
-            dialog->show();
-            dialog->messageReceived(msg.body());
-        }
+        dialog->show();
+        dialog->messageReceived(msg.body());
     }*/
 
     DebugDialog *debugDialog = getDebugDialog(QXmppUtils::jidToBareJid(msg.from()));
@@ -594,7 +552,7 @@ void mainDialog::signIn(const QString &userName, const QString &password)
 
 void mainDialog::wechatSignIn()
 {
-    m_otherPlatformsSignIn.signIn(OtherPlatformsSignIn::WECHAT);
+    m_otherPlatformsSignIn.signIn(OtherPlatformsSignIn::QQ);
 }
 
 void mainDialog::cancelSignIn()

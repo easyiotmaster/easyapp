@@ -39,13 +39,15 @@ void OtherPlatformsSignIn::signIn(OtherPlatformsSignIn::SIGNIN_PLATFORM platform
     switch(platform)
     {
     case WECHAT:
-        //url = QUrl(QObject::tr("http://www.easy-iot.cc/qqconnect/example//index.html?webChannelBaseUrl=ws://127.0.0.1:%1").arg(m_port));
+        url = QUrl(QObject::tr("http://www.easy-iot.cc/qqconnect/example/oauth/index.php?port=%1").arg(m_port));
+        return;
+        break;
+    case QQ:
         url = QUrl(QObject::tr("http://www.easy-iot.cc/qqconnect/example/oauth/index.php?port=%1").arg(m_port));
         break;
     default:
         break;
     }
-    qDebug()<<url;
     QDesktopServices::openUrl(url);
 }
 

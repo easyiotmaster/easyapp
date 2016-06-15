@@ -367,7 +367,7 @@
        <item>
         <widget class="QPushButton" name="pushButton_wechatSignIn">
          <property name="text">
-          <string>微信登录</string>
+          <string>QQ登录</string>
          </property>
         </widget>
        </item>

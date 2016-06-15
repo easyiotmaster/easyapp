@@ -31,7 +31,8 @@ private:
 public:
     enum SIGNIN_PLATFORM
     {
-        WECHAT
+        WECHAT,
+        QQ
     };
     explicit OtherPlatformsSignIn(QObject *parent = 0);
     ~OtherPlatformsSignIn();

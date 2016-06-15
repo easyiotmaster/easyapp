@@ -1,5 +1,5 @@
 #include "debugdialog.h"
-#include "ui_debugdialog.h"
+#include "ui_debugwindow.h"
 #include <QTime>
 #include "messagelog.h"
 #include <QJsonObject>
@@ -10,6 +10,8 @@
 #include <QCryptographicHash>
 #include <QHttpPart>
 #include <QNetworkReply>
+#include <QKeyEvent>
+
 QString DebugDialog::stringToHtmlFilter(const QString &str)
 {
     QString htmlStr = str;
@@ -38,37 +40,44 @@ QString DebugDialog::stringToHtml(const QString &str, QColor color)
 
 QString DebugDialog::getDownloadFileName()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,tr("选择下载文件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),tr("BIN(*.bin)"));
+    QString fileName = QFileDialog::getOpenFileName(this,tr("固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"BIN(*.bin)");
     IniConfig::setRemoteDownloadPath(fileName,m_client->configuration().jidBare());
+    return fileName;
+}
+
+QString DebugDialog::getLedFileName()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,tr("LED固件"),IniConfig::getLedFilePath(m_client->configuration().jidBare()),"BIN(*.*)");
+    IniConfig::setLedFilePath(fileName,m_client->configuration().jidBare());
     return fileName;
 }
 
 QString DebugDialog::getDownloadResource()
 {
-    return ui->cmb_resource->currentText();
+    //return ui->cmb_resource->currentText();
+    return "";
 }
 
 int DebugDialog::parseRemoteDownloadACK(const QString &msg)
 {
-
     if(msg == "ERROR")
     {
         switch(m_lastDownloadAction)
         {
             case AT_DOWN:
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT DOWN ERROR"));
+                insertTextToTextBrowser("AT DOWN ERROR",REMOTEDOWNLOAD);
                 break;
             case AT_ISP:
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT ISP ERROR"));
+                insertTextToTextBrowser("AT ISP ERROR",REMOTEDOWNLOAD);
                 break;
             case AT_RST:
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT RST ERROR"));
+                insertTextToTextBrowser("AT RST ERROR",REMOTEDOWNLOAD);
                 break;
             default:
                 return 0;
         }
         ui->pgb_download->hide();
-        ui->btn_remotedownload->setEnabled(true);
+        m_toolMenu->setDisabled(false);
     }
     else if(msg == "OK")
     {
@@ -82,19 +91,21 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
                 ui->pgb_download->setValue(0);
                 break;
             case AT_RST:
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:RST SUCCESSED"));
+                insertTextToTextBrowser("RST SUCCESSED",REMOTEDOWNLOAD);
+                ui->pgb_download->setValue(0);
+                ui->pgb_download->hide();
+                m_toolMenu->setDisabled(false);
                 break;
             default:
                 return 0;
         }
-        ui->pgb_download->hide();
-        ui->btn_remotedownload->setEnabled(true);
+
 
     }
     else if(msg.contains("+DOWN=ERROR"))
     {
         ui->pgb_download->hide();
-        ui->btn_remotedownload->setEnabled(true);
+        m_toolMenu->setDisabled(false);
     }
     else if(msg.contains("+DOWN=MD5"))
     {
@@ -103,24 +114,24 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
         QString md5;
         if(md5List.size() != 2)
         {
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:MD5 parse error"));
+            insertTextToTextBrowser("MD5 parse error",REMOTEDOWNLOAD);
             ui->pgb_download->hide();
-            ui->btn_remotedownload->setEnabled(true);
+            m_toolMenu->setDisabled(false);
         }
         else
         {
             md5 = md5List[1];
             if(md5 != m_fileMD5)
             {
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:MD5 does not match"));
+                insertTextToTextBrowser("MD5 does not match",REMOTEDOWNLOAD);
                 ui->pgb_download->hide();
-                ui->btn_remotedownload->setEnabled(true);
+                m_toolMenu->setDisabled(false);
             }
             else
             {
                 QString atString = tr("at+isp");
                 m_client->sendMessage(m_bareJid,atString);
-                insertSendMessageToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]")+ tr("[发送MESSAGE]:%1").arg(atString));
+                insertTextToTextBrowser(atString,SEND_MESSAGE);
                 m_lastDownloadAction = AT_ISP;
                 //lockUI(false);
             }
@@ -133,9 +144,9 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
         QString downSizeStr,totalSizeStr;
         if(strList.size() != 2)
         {
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:MD5 parse error"));
+            insertTextToTextBrowser("MD5 parse error",REMOTEDOWNLOAD);
             ui->pgb_download->hide();
-            ui->btn_remotedownload->setEnabled(true);
+            m_toolMenu->setDisabled(false);
             return 1;
         }
         else
@@ -143,9 +154,9 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
             strList = strList[1].split(',');
             if(strList.size() != 2)
             {
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:MD5 parse error"));
+                insertTextToTextBrowser("MD5 parse error",REMOTEDOWNLOAD);
                 ui->pgb_download->hide();
-                ui->btn_remotedownload->setEnabled(true);
+                m_toolMenu->setDisabled(false);
                 return 1;
             }
             else
@@ -155,6 +166,7 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
             }
 
         }
+        qDebug()<<downSizeStr<<totalSizeStr;
         quint64 downSize = downSizeStr.toLong();
         quint64 totalSize = totalSizeStr.toLong();
         if(totalSize != 0)
@@ -166,20 +178,20 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
     else if(msg.contains("+ISP=SUCCESS"))
     {
         ui->pgb_download->setValue(100);
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:remote download success"));
+        insertTextToTextBrowser("remote download success",REMOTEDOWNLOAD);
 //        QString atString = tr("at+rst");
 //        m_client->sendMessage(m_barejid,atString);
 //        ui->txd_downloadlog->append(tr("[AT]%1").arg(atString));
 //        m_lastDownloadAction = AT_RST;
         ui->pgb_download->hide();
-        ui->btn_remotedownload->setEnabled(true);
-        m_downTimer->stop();
+        m_toolMenu->setDisabled(false);
+        m_remoteDownloadTimer->stop();
         return 2;
     }
     else if(msg.contains("+ISP=ERROR"))
     {
         ui->pgb_download->hide();
-        ui->btn_remotedownload->setEnabled(true);
+        m_toolMenu->setDisabled(false);
     }
     else if(msg.contains("+ISP="))
     {
@@ -187,9 +199,9 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
         QString downSizeStr,totalSizeStr;
         if(strList.size() != 2)
         {
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:isp parse error"));
+            insertTextToTextBrowser("isp parse error",REMOTEDOWNLOAD);
             ui->pgb_download->hide();
-            ui->btn_remotedownload->setEnabled(true);
+            m_toolMenu->setDisabled(false);
             return 1;
         }
         else
@@ -197,9 +209,9 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
             strList = strList[1].split(',');
             if(strList.size() != 2)
             {
-                insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:isp parse error"));
+                insertTextToTextBrowser("isp parse error",REMOTEDOWNLOAD);
                 ui->pgb_download->hide();
-                ui->btn_remotedownload->setEnabled(true);
+                m_toolMenu->setDisabled(false);
                 return 1;
             }
             else
@@ -232,52 +244,83 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
     return 1;
 }
 
-void DebugDialog::insertRecvMessageToTextBrowser(const QString &msg)
+void DebugDialog::insertTextToTextBrowser(const QString &msg, DebugDialog::BROWSER_TEXT_TYPE type)
 {
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QString time = dateTime.toString("[hh:mm:ss]");
+
+    QString str;
     ui->txb_message->moveCursor(QTextCursor::End);
-    ui->txb_message->insertHtml(stringToHtml(msg,QColor(0,0,255)));//界面显示
+    switch(type)
+    {
+    case RECV_MESSAGE:
+        str = tr("[接受MESSAGE]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,0,255)));//界面显示
+        break;
+    case SEND_MESSAGE:
+        str = tr("[发送MESSAGE]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(255,0,0)));//界面显示
+        break;
+    case PRESENCE_TEXT:
+        str = tr("[接收PRESENCE]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,0)));//界面显示
+        break;
+    case REMOTEDOWNLOAD:
+        str = tr("[REMOTEDOWNLOAD]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        break;
+    case LEDUPDATE:
+        str = tr("[LEDUPDATE]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        break;
+    default:
+        str = tr("[未知]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,0,0)));//界面显示
+        break;
+    }
     ui->txb_message->moveCursor(QTextCursor::End);
+
+    QString data_msg = dateTime.toString("[yyyy-MM-dd hh:mm:ss]")  + str;
+    if(m_client)
+        MessageLog::append(m_client->configuration().jidBare(),m_bareJid,data_msg);//保存消息记录
 }
 
-void DebugDialog::insertSendMessageToTextBrowser(const QString &msg)
+void DebugDialog::createToolMenu()
 {
-    ui->txb_message->moveCursor(QTextCursor::End);
-    ui->txb_message->insertHtml(stringToHtml(msg,QColor(255,0,0)));//界面显示
-    ui->txb_message->moveCursor(QTextCursor::End);
-}
+    m_toolMenu = new QMenu(this);
+    m_toolMenu->setTitle(tr("工具"));
+    this->menuBar()->addMenu(m_toolMenu);
 
-void DebugDialog::insertPresenceToTextBrowser(const QString &msg)
-{
-    ui->txb_message->moveCursor(QTextCursor::End);
-    ui->txb_message->insertHtml(stringToHtml(msg,QColor(0,255,0)));//界面显示
-    ui->txb_message->moveCursor(QTextCursor::End);
-}
+    m_remoteDownloadAction = new QAction(QObject::tr("远程下载"),this);
+    connect(m_remoteDownloadAction,SIGNAL(triggered(bool)),SLOT(remoteDownload()));
+    m_toolMenu->addAction(m_remoteDownloadAction);
 
-void DebugDialog::insertParseTextToTextBrowser(const QString &msg)
-{
-    ui->txb_message->moveCursor(QTextCursor::End);
-    ui->txb_message->insertHtml(stringToHtml(msg,QColor(0,255,255)));//界面显示
-    ui->txb_message->moveCursor(QTextCursor::End);
+    m_updateLCDAction = new QAction(QObject::tr("LED更新"),this);
+    connect(m_updateLCDAction,SIGNAL(triggered(bool)),SLOT(updateLEDFirmware()));
+    m_toolMenu->addAction(m_updateLCDAction);
 }
 
 DebugDialog::DebugDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DebugDialog),m_client(0),m_bareJid(""),m_displayName(""),m_downloadFile(0),m_multiPart(0)
+    QMainWindow(parent),
+    ui(new Ui::debugWindow),m_client(0),m_bareJid(""),m_displayName(""),m_downloadFile(0),m_multiPart(0),m_toolMenu(0)
 {
     ui->setupUi(this);
     connect(ui->btn_send,SIGNAL(clicked(bool)),SLOT(sendMessage()));
     ui->txb_send->setFocus();
 
     ui->pgb_download->hide();
+    createToolMenu();
+
 
     m_manager = new QNetworkAccessManager(this);
-    //connect(m_manager,SIGNAL(finished(QNetworkReply*)),SLOT(replyFinish(QNetworkReply*)));
 
-    m_downTimer = new QTimer;
-    m_downTimer->setSingleShot(true);
-    connect(m_downTimer,SIGNAL(timeout()),SLOT(downloadTimeout()));
+    m_remoteDownloadTimer = new QTimer;
+    m_remoteDownloadTimer->setSingleShot(true);
+    connect(m_remoteDownloadTimer,SIGNAL(timeout()),SLOT(remoteDownloadTimeout()));
 
-    connect(ui->btn_remotedownload,SIGNAL(clicked(bool)),SLOT(remoteDownload()));
+    m_httpDownloadTimer = new QTimer;
+    m_httpDownloadTimer->setSingleShot(true);
+    connect(m_httpDownloadTimer,SIGNAL(timeout()),SLOT(httpDownloadTimeout()));
 }
 
 DebugDialog::~DebugDialog()
@@ -291,14 +334,16 @@ DebugDialog::~DebugDialog()
     }
     if(m_multiPart)
         m_multiPart->deleteLater();
-    if(m_downTimer->isActive())
-        m_downTimer->stop();
-    m_downTimer->deleteLater();
+    if(m_remoteDownloadTimer->isActive())
+        m_remoteDownloadTimer->stop();
+    m_remoteDownloadTimer->deleteLater();
+    m_updateLCDAction->deleteLater();
+    m_toolMenu->deleteLater();
 }
 
 void DebugDialog::show()
 {
-    QDialog::show();
+    QMainWindow::show();
     ui->txb_send->setFocus();
 }
 
@@ -325,11 +370,11 @@ void DebugDialog::setDisplayName(const QString &displayName)
 
 void DebugDialog::setResource(const QStringList &resouces)
 {
-    ui->cmb_resource->clear();
+    /*ui->cmb_resource->clear();
     for(int i = 0;i < resouces.size();++i)
     {
         ui->cmb_resource->insertItem(i,resouces[i]);
-    }
+    }*/
 }
 
 void DebugDialog::setQXmppClient(QXmppClient *client)
@@ -339,77 +384,64 @@ void DebugDialog::setQXmppClient(QXmppClient *client)
 
 void DebugDialog::messageReceived(const QXmppMessage &msg)
 {
-    QString showStr = QTime::currentTime().toString("[hh:mm:ss]");
-    showStr += tr("[接收MESSAGE]:");
-    showStr += msg.body();
-    insertRecvMessageToTextBrowser(showStr);
-    if(parseRemoteDownloadACK(showStr) == 1)
-        m_downTimer->start(ATTIMEOUT);
+    insertTextToTextBrowser(msg.body(),RECV_MESSAGE);
 
-    if(m_client)
-        MessageLog::append(m_client->configuration().jidBare(),m_bareJid,showStr);//保存消息记录
+    if(parseRemoteDownloadACK(msg.body()) == 1)
+        m_remoteDownloadTimer->start(ATTIMEOUT);
 
 }
 
 void DebugDialog::presenceReceived(const QXmppPresence &presence)
 {
-    QString showStr = QTime::currentTime().toString("[hh:mm:ss]");
-    showStr += tr("[接收PRESENCE]:");
-    showStr += presence.statusText();
-
-    insertPresenceToTextBrowser(showStr);//界面显示
-
-    if(m_client)
-        MessageLog::append(m_client->configuration().jidBare(),m_bareJid,showStr);//保存消息记录
+    insertTextToTextBrowser(presence.statusText(),PRESENCE_TEXT);
 }
 
 void DebugDialog::sendMessage()
 {
+    if(ui->txb_send->toPlainText().isEmpty())
+        return;
     if(m_client)
-    {
         m_client->sendMessage(m_bareJid,ui->txb_send->toPlainText());
-    }
 
-    QString showStr = QTime::currentTime().toString("[hh:mm:ss]");
-    showStr += tr("[发送MESSAGE]:");
-    showStr +=  ui->txb_send->toPlainText();
-
-    insertSendMessageToTextBrowser(showStr);//界面显示
+    insertTextToTextBrowser(ui->txb_send->toPlainText(),SEND_MESSAGE);
 
     ui->txb_send->clear();
-
-    if(m_client)
-        MessageLog::append(m_client->configuration().jidBare(),m_bareJid,showStr);//保存消息记录
 }
 
 void DebugDialog::remoteDownload()
 {
-
-    QString resource = getDownloadResource();
+    /*QString resource = getDownloadResource();
     if(resource.isEmpty())
     {
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:resource is empty"));
+        insertTextToTextBrowser("resource is empty",REMOTEDOWNLOAD);
         return;
     }
-    insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:resource:%1").arg(resource));
+    insertTextToTextBrowser(tr("resource:%1").arg(resource),REMOTEDOWNLOAD);
+    */
 
     QString fileName = getDownloadFileName();
     if(fileName.isEmpty())
     {
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:filename is empty"));
+        insertTextToTextBrowser("filename is empty",REMOTEDOWNLOAD);
         return;
     }
-    insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:filename:%1").arg(fileName));
+    //ui->btn_remotedownload->setEnabled(false);
+    m_toolMenu->setDisabled(true);
+    remoteDownload(fileName);
+}
 
+void DebugDialog::remoteDownload(const QString &fileName)
+{
+    insertTextToTextBrowser(tr("filename:%1").arg(fileName),REMOTEDOWNLOAD);
     m_downloadFile = new QFile(fileName);
     if(!m_downloadFile->open(QIODevice::ReadOnly))
     {
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:file open failed"));
+        insertTextToTextBrowser("file open failed",REMOTEDOWNLOAD);
         return;
     }
-    ui->btn_remotedownload->setEnabled(false);
+
     m_fileMD5 = QCryptographicHash::hash(m_downloadFile->readAll(),QCryptographicHash::Md5).toHex().constData();//计算文件MD5
-    insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:file md5:%1").arg(m_fileMD5));
+    insertTextToTextBrowser(tr("file md5:%1").arg(m_fileMD5),REMOTEDOWNLOAD);
 
     m_downloadFile->reset();
 
@@ -433,7 +465,7 @@ void DebugDialog::remoteDownload()
 
     bool check;
 
-    check = connect(reply,SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(replyError(QNetworkReply::NetworkError)));
+    check = connect(reply,SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(remoteDownloadReplayError(QNetworkReply::NetworkError)));
     Q_ASSERT(check);
 
     check = connect(reply,SIGNAL(uploadProgress(qint64,qint64)),SLOT(uploadProgress(qint64, qint64)));
@@ -443,25 +475,39 @@ void DebugDialog::remoteDownload()
     Q_ASSERT(check);
 
     m_lastDownloadAction = UPLOAD_TO_HTTPSERVER;
-    m_downTimer->start(10000);
+    m_remoteDownloadTimer->start(10000);
 }
 
-void DebugDialog::replyError(QNetworkReply::NetworkError error)
+
+
+void DebugDialog::remoteDownloadReplayError(QNetworkReply::NetworkError error)
 {
-    insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:upload to server error:%1").arg(error));
-    ui->btn_remotedownload->setEnabled(true);
+    insertTextToTextBrowser(tr("upload to server error:%1").arg(error),REMOTEDOWNLOAD);
+    m_toolMenu->setDisabled(false);
     ui->pgb_download->hide();
 }
 
+
 void DebugDialog::uploadProgress(qint64 sendSize, qint64 totalSize)
 {
-    m_downTimer->start(HTTPTIMEROUT);
+    m_remoteDownloadTimer->start(HTTPTIMEROUT);
     if(totalSize > 0)
     {
         ui->pgb_download->show();
         int percentage = sendSize*100/totalSize;
         ui->pgb_download->setValue(percentage);
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:upload to server:%1").arg(percentage));
+        insertTextToTextBrowser(tr("upload to server:%1").arg(percentage),REMOTEDOWNLOAD);
+    }
+}
+
+void DebugDialog::downloadProgress(qint64 recvSize, qint64 totalSize)
+{
+    if(totalSize > 0)
+    {
+        ui->pgb_download->show();
+        int percentage = recvSize*100/totalSize;
+        ui->pgb_download->setValue(percentage);
+        insertTextToTextBrowser(tr("download led template file:%1").arg(percentage),LEDUPDATE);
     }
 }
 
@@ -470,7 +516,7 @@ void DebugDialog::uploadFinish()
     QNetworkReply *reply = (QNetworkReply*)sender();
     QByteArray arr = reply->readAll();
     QString result(arr);
-    insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:upload to server:%1").arg(QString(arr)));
+    insertTextToTextBrowser(tr("upload to server:%1").arg(QString(arr)),REMOTEDOWNLOAD);
 
     reply->deleteLater();
     m_downloadFile->close();
@@ -480,44 +526,174 @@ void DebugDialog::uploadFinish()
     m_multiPart = 0;
     if(!result.contains("./upload/"))//上传失败
     {
-        insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:upload to server failed"));
-        ui->btn_remotedownload->setEnabled(true);
+        insertTextToTextBrowser("upload to server failed",REMOTEDOWNLOAD);
+        m_toolMenu->setDisabled(false);
         ui->pgb_download->hide();
         return;
     }
     QString atString = tr("at+down=http://115.28.44.147/upload2/upload/%1").arg(result.split('/').last());
     m_client->sendMessage(m_bareJid,atString);
-    insertSendMessageToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[发送MESSAGE]:%1").arg(atString));
+    insertTextToTextBrowser(atString,SEND_MESSAGE);
     m_lastDownloadAction = AT_DOWN;
-    m_downTimer->start(HTTPTIMEROUT);
+    m_remoteDownloadTimer->start(HTTPTIMEROUT);
 }
 
-void DebugDialog::downloadTimeout()
+void DebugDialog::remoteDownloadTimeout()
 {
     switch(m_lastDownloadAction)
     {
         case UPLOAD_TO_HTTPSERVER:
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:upload timeout"));
+            insertTextToTextBrowser("upload timeout",REMOTEDOWNLOAD);
             break;
         case AT_DOWN:
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT DOWN timeout"));
+            insertTextToTextBrowser("AT DOWN timeout",REMOTEDOWNLOAD);
             break;
         case AT_ISP:
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT ISP timeout"));
+            insertTextToTextBrowser("AT ISP timeout",REMOTEDOWNLOAD);
             break;
         case AT_RST:
-            insertParseTextToTextBrowser(QTime::currentTime().toString("[hh:mm:ss]") + tr("[REMOTEDOWNLOAD]:AT RST timeout"));
+            insertTextToTextBrowser("AT RST timeout",REMOTEDOWNLOAD);
             break;
         default:
             break;
     }
     ui->pgb_download->setValue(0);
     ui->pgb_download->hide();
-    ui->btn_remotedownload->setEnabled(true);
+    m_toolMenu->setDisabled(false);
+}
+
+void DebugDialog::httpDownloadTimeout()
+{
+    insertTextToTextBrowser("http download timeout",LEDUPDATE);
+    ui->pgb_download->setValue(0);
+    ui->pgb_download->hide();
+    m_toolMenu->setDisabled(false);
+}
+
+void DebugDialog::updateLEDFirmware()
+{
+    QString ledFileName = getLedFileName();
+    if(ledFileName.isEmpty())
+    {
+        insertTextToTextBrowser("'led firmware' filename is empty",LEDUPDATE);
+        return;
+    }
+    m_ledFirmwareFile.setFileName(ledFileName);
+    m_toolMenu->setDisabled(true);
+    geLEDTemplateFirmware();
+}
+
+void DebugDialog::geLEDTemplateFirmware()
+{
+    if(m_ledTemplateFirmwareFile.isOpen())
+    {
+        insertTextToTextBrowser("template file already opened",LEDUPDATE);
+        m_toolMenu->setDisabled(false);
+        return;
+    }
+
+    QString fileName;
+    if(m_client)
+        fileName = IniConfig::getLedTemplateFilePath(m_client->configuration().jidBare())+"ledtemplate.bin";
+
+    m_ledTemplateFirmwareFile.remove(fileName);
+    m_ledTemplateFirmwareFile.setFileName(fileName);
+    if(!m_ledTemplateFirmwareFile.open(QIODevice::ReadWrite))
+    {
+        insertTextToTextBrowser("template file open failed",LEDUPDATE);
+        m_toolMenu->setDisabled(false);
+        return;
+    }
+
+    insertTextToTextBrowser("download template file",LEDUPDATE);
+    QNetworkReply * reply = m_manager->get(QNetworkRequest(QUrl("http://www.easy-iot.cc/download/easyled_firmware.bin")));
+
+    connect(reply,SIGNAL(downloadProgress(qint64,qint64)),SLOT(downloadProgress(qint64,qint64)));
+    connect(reply,SIGNAL(readyRead()),SLOT(readHttpData()));
+    connect(reply,SIGNAL(finished()),SLOT(httpDownloadFinish()));
+
+    m_httpDownloadTimer->start(HTTPTIMEROUT);
+}
+
+void DebugDialog::readHttpData()
+{
+    m_httpDownloadTimer->start(HTTPTIMEROUT);
+    QNetworkReply* reply = (QNetworkReply*)this->sender();
+    if(m_ledTemplateFirmwareFile.isOpen())
+    {
+        m_ledTemplateFirmwareFile.write(reply->readAll());
+    }
+}
+
+void DebugDialog::httpDownloadFinish()
+{
+    m_httpDownloadTimer->stop();
+    QNetworkReply* reply = (QNetworkReply*)this->sender();
+    reply->deleteLater();
+
+    insertTextToTextBrowser("template download finished",LEDUPDATE);
+
+    QFile outFile;
+    if(m_client)
+        outFile.setFileName(IniConfig::getLedTemplateFilePath(m_client->configuration().jidBare())+"led.bin");
+
+    if(m_ledTemplateFirmwareFile.isOpen())
+        m_ledTemplateFirmwareFile.close();
+    if(!m_ledTemplateFirmwareFile.open(QIODevice::ReadOnly))
+    {
+        insertTextToTextBrowser("led template file open failed",LEDUPDATE);
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+    if(!m_ledFirmwareFile.open(QIODevice::ReadOnly))
+    {
+        m_ledTemplateFirmwareFile.close();
+        insertTextToTextBrowser("led firmware open failed",LEDUPDATE);
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+    outFile.open(QIODevice::WriteOnly);
+    if(m_ledTemplateFirmwareFile.size() < 20*1024)
+    {
+        insertTextToTextBrowser("led template file's size less than 20KB",LEDUPDATE);
+        m_ledTemplateFirmwareFile.close();
+        m_ledFirmwareFile.close();
+        outFile.close();
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+   // char buff[20*1024];
+    //m_ledTemplateFirmwareFile.read(buff,20*1024);
+    outFile.write(m_ledTemplateFirmwareFile.read(20*1024));
+    quint32 ledFileLen = m_ledFirmwareFile.size();
+    char ledFileLenBuff[4];
+    memcpy(ledFileLenBuff,&ledFileLen,4);
+    outFile.write(ledFileLenBuff,4);
+    outFile.write(m_ledFirmwareFile.readAll());
+    m_ledTemplateFirmwareFile.close();
+    m_ledFirmwareFile.close();
+    outFile.close();
+    insertTextToTextBrowser("combin finished",LEDUPDATE);
+    remoteDownload(outFile.fileName());
+
 }
 
 void DebugDialog::keyPressEvent(QKeyEvent* event)
 {
-    QDialog::keyPressEvent(event);
+    QMainWindow::keyPressEvent(event);
     ui->txb_send->setFocus();
+    if(event->key() == Qt::Key_Return)
+    {
+        sendMessage();
+    }
+    else if(event->key() == Qt::Key_Escape)
+    {
+        hide();
+    }
 }

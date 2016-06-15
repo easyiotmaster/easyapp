@@ -32,7 +32,6 @@ SOURCES += main.cpp \
     qxmpptranslator.cpp \
     qxmpptranslatordelegate.cpp \
     qxmpptranslatorjsondelegate.cpp \
-    otasetdialog.cpp \
     webchannel/websocketclientwrapper.cpp \
     webchannel/websockettransport.cpp \
     otherplatformssignin.cpp \
@@ -67,7 +66,6 @@ HEADERS += chatMsgGraphicsItem.h \
     qxmpptranslator.h \
     qxmpptranslatordelegate.h \
     qxmpptranslatorjsondelegate.h \
-    otasetdialog.h \
     webchannel/websocketclientwrapper.h \
     webchannel/websockettransport.h \
     otherplatformssignin.h \
@@ -81,8 +79,7 @@ FORMS += mainDialog.ui \
     xmlConsoleDialog.ui \
     aboutDialog.ui \
     tcpsetdialog.ui \
-    otasetdialog.ui \
-    debugdialog.ui
+    debugwindow.ui
 
 QT += network \
     xml \

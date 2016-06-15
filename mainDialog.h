@@ -41,7 +41,6 @@
 #include "src/client/QXmppClient.h"
 #include "tcpsetdialog.h"
 #include "iniconfig.h"
-#include "otasetdialog.h"
 #include "otherplatformssignin.h"
 #include "debugdialog.h"
 class chatDialog;
@@ -73,7 +72,6 @@ private slots:
     void presenceChanged(const QString&, const QString&);
     void filterChanged(const QString& filter);
     void showChatDialog(const QString& bareJid);
-    void showOTADialog(const QString &bareJid);//显示OTA设置页面
     void messageReceived(const QXmppMessage& msg);
     void statusTextChanged(const QString&);
     void presenceTypeChanged(QXmppPresence::Type);
@@ -117,7 +115,7 @@ private:
     void addPhotoHash(QXmppPresence&);
 
     chatDialog*     getChatDialog(const QString& bareJid);
-    OTASetDialog*   getOTADialog(const QString &bareJid);
+    //OTASetDialog*   getOTADialog(const QString &bareJid);
     DebugDialog*    getDebugDialog(const QString &bareJid);
 
     Ui::mainDialogClass* ui;
@@ -131,7 +129,7 @@ private:
     OtherPlatformsSignIn    m_otherPlatformsSignIn;
     // map of bare jids and respective chatdlg
     QMap<QString, chatDialog*>  m_chatDlgsList;//聊天窗口口列表
-    QMap<QString,OTASetDialog*> m_otaDlgsList;//ota窗口列表
+    //QMap<QString,OTASetDialog*> m_otaDlgsList;//ota窗口列表
     QMap<QString,DebugDialog*>  m_debugDlgList;//debug窗口列表
     TcpServer   m_tcpServer;
 #ifndef QT_NO_SYSTEMTRAYICON

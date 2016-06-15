@@ -54,11 +54,43 @@ QString IniConfig::getRemoteDownloadPath(const QString &jidBare)
     return path;
 }
 
+QString IniConfig::getLedFilePath(const QString &jidBare)
+{
+    QString configFileName = getConfigFileName(jidBare);
+
+    QSettings settings(configFileName,QSettings::IniFormat);
+
+#if defined(WIN32)
+    QString path = settings.value("remote_download/led_bin_path","C:/Users/Administrator/Desktop").toString();
+#elif defined(LINUX)
+    QString path = settings.value("remote_download/led_bin_path","/home").toString();
+#else
+    QString path = settings.value("remote_download/led_bin_path","").toString();
+#endif
+    settings.setValue("remote_download/led_bin_path",path);
+    settings.sync();
+    return path;
+}
+
+QString IniConfig::getLedTemplateFilePath(const QString &jidBare)
+{
+    return getSettingsDir(jidBare);
+}
+
 void IniConfig::setRemoteDownloadPath(const QString &path, const QString &jidBare)
 {
     QString configFileName = getConfigFileName(jidBare);
 
     QSettings settings(configFileName,QSettings::IniFormat);
     settings.setValue("remote_download/bin_path",path);
+    settings.sync();
+}
+
+void IniConfig::setLedFilePath(const QString &path, const QString &jidBare)
+{
+    QString configFileName = getConfigFileName(jidBare);
+
+    QSettings settings(configFileName,QSettings::IniFormat);
+    settings.setValue("remote_download/led_bin_path",path);
     settings.sync();
 }
