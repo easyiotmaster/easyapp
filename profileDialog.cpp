@@ -120,14 +120,14 @@ void profileDialog::updateText()
     for(int i = 0; i < resources.count(); ++i)
     {
         QString resource = resources.at(i);
-        statusText += "<B>Resource: </B>" + resource;
+        statusText += tr("<B>资源: </B>") + resource;
         statusText += "<BR>";
         QXmppPresence presence = m_xmppClient.rosterManager().getPresence(m_bareJid, resource);
-        statusText += "<B>Status: </B>" + presenceToStatusText(presence);
+        statusText += tr("<B>状态: </B>") + presenceToStatusText(presence);
         statusText += "<BR>";
         if(m_versions.contains(resource))
         {
-            statusText += "<B>Software: </B>" + QString("%1 %2 %3").
+            statusText += tr("<B>软件: </B>") + QString("%1 %2 %3").
                           arg(m_versions[resource].name()).
                           arg(m_versions[resource].version()).
                           arg(m_versions[resource].os());
@@ -136,7 +136,7 @@ void profileDialog::updateText()
 
         if(m_time.contains(resource))
         {
-            statusText += "<B>Time: </B>" + QString("utc=%1 [tzo=%2]").
+            statusText += tr("<B>时间: </B>") + QString("utc=%1 [tzo=%2]").
                           arg(m_time[resource].utc().toString()).
                           arg(QXmppUtils::timezoneOffsetToString(m_time[resource].tzo()));
             statusText += "<BR>";

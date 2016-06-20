@@ -18,8 +18,8 @@ TcpSetDialog::~TcpSetDialog()
 
 void TcpSetDialog::setShowTcpServerPort(quint16 port)
 {
-    ui->lab_port->setText(QObject::tr("Port:%1").arg(port));
-    ui->ldt_port->setText(QObject::tr("%1").arg(port));
+    ui->lab_port->setText(tr("端口:%1").arg(port));
+    ui->ldt_port->setText(tr("%1").arg(port));
 }
 
 void TcpSetDialog::setTcpServerStatus(bool accept)
@@ -36,11 +36,11 @@ void TcpSetDialog::on_btn_setport_clicked()
 
     if(!ok || port == 0)
     {
-        QMessageBox::about(this,QObject::tr("Tcp Set"),QObject::tr("Set Listening Port Failed !"));
+        QMessageBox::about(this,tr("Tcp 设置"),tr("端口监听失败 !"));
         return;
     }
 
-    ui->lab_port->setText(QObject::tr("Port;%1").arg(port));//界面更新
+    ui->lab_port->setText(QObject::tr("端口;%1").arg(port));//界面更新
 
     qobject_cast<mainDialog*>(this->parent())->setTcpServerPort(port);//写入配置
     on_btn_stopaccept_clicked();
@@ -54,7 +54,7 @@ void TcpSetDialog::on_btn_startaccept_clicked()
         ui->btn_stopaccept->setEnabled(true);
     }
     else
-        QMessageBox::about(this,QObject::tr("Tcp Set"),QObject::tr("Start Listening Failed !"));
+        QMessageBox::about(this,tr("Tcp 设置"),QObject::tr("启动监听失败 !"));
 
 }
 

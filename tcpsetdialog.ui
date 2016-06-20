@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Tcp Set</string>
+   <string>Tcp 设置</string>
   </property>
   <widget class="QPushButton" name="btn_startaccept">
    <property name="geometry">

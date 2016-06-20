@@ -71,7 +71,7 @@ statusTextWidget::statusTextWidget(QWidget* parent)
     : QWidget(parent)
     , m_statusLineEdit(0)
     , m_statusButton(0)
-    , m_clearStatusTextHistory("Clear Status Message", this)
+    , m_clearStatusTextHistory(tr("清空状态信息"), this)
 {
     bool check;
     Q_UNUSED(check);

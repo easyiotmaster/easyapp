@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QXmpp</string>
+   <string>EasyIOT</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
@@ -176,7 +176,7 @@
        <item>
         <widget class="QLabel" name="label_3">
          <property name="text">
-          <string>Login:</string>
+          <string>登录：</string>
          </property>
         </widget>
        </item>
@@ -200,7 +200,7 @@
        <item>
         <widget class="QCheckBox" name="checkBox_rememberPasswd">
          <property name="text">
-          <string>Remember password</string>
+          <string>记住密码</string>
          </property>
         </widget>
        </item>
@@ -222,14 +222,14 @@
          <item>
           <widget class="QPushButton" name="pushButton_signIn">
            <property name="text">
-            <string>Sign in</string>
+            <string>登录</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="pushButton_cancel">
            <property name="text">
-            <string>Cancel</string>
+            <string>取消</string>
            </property>
           </widget>
          </item>
@@ -374,7 +374,7 @@
        <item>
         <widget class="QLabel" name="label_4">
          <property name="text">
-          <string>Host:</string>
+          <string>主机:</string>
          </property>
         </widget>
        </item>
@@ -384,7 +384,7 @@
        <item>
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>Port:</string>
+          <string>端口:</string>
          </property>
         </widget>
        </item>

@@ -25,10 +25,11 @@
 #include "rosterItem.h"
 #include <QImage>
 #include <QDebug>
+#include <QObject>
 rosterItem::rosterItem(const QString& bareJid)
 {
     setData(bareJid, rosterItem::BareJid);
-    setData("Offline", rosterItem::StatusText);
+    setData(QObject::tr("离线"), rosterItem::StatusText);
     setAvatar(QImage(":/icons/resource/avatar.png"));
     setIcon(QIcon(":/icons/resource/gray.png"));
 }
@@ -49,9 +50,9 @@ void rosterItem::setPresence(const QXmppPresence &presence)
     QString statusText = presence.statusText();
     if (statusText.isEmpty()) {
         if(presence.type() == QXmppPresence::Available)
-            statusText = "Available";
+            statusText = QObject::tr("在线");
         else if(presence.type() == QXmppPresence::Unavailable)
-            statusText = "Offline";
+            statusText =  QObject::tr("离线");
     }
 
     // store data

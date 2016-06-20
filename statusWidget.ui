@@ -148,7 +148,10 @@
      <normaloff>:/icons/resource/red.png</normaloff>:/icons/resource/red.png</iconset>
    </property>
    <property name="text">
-    <string>Busy</string>
+    <string>忙碌</string>
+   </property>
+   <property name="toolTip">
+    <string>忙碌</string>
    </property>
   </action>
   <action name="actionAvailable">
@@ -157,7 +160,10 @@
      <normaloff>:/icons/resource/green.png</normaloff>:/icons/resource/green.png</iconset>
    </property>
    <property name="text">
-    <string>Available</string>
+    <string>在线</string>
+   </property>
+   <property name="toolTip">
+    <string>在线</string>
    </property>
   </action>
   <action name="actionInvisible">
@@ -166,7 +172,10 @@
      <normaloff>:/icons/resource/gray.png</normaloff>:/icons/resource/gray.png</iconset>
    </property>
    <property name="text">
-    <string>Invisible</string>
+    <string>在线</string>
+   </property>
+   <property name="toolTip">
+    <string>在线</string>
    </property>
   </action>
   <action name="actionSign_out">
@@ -175,7 +184,10 @@
      <normaloff>:/icons/resource/gray.png</normaloff>:/icons/resource/gray.png</iconset>
    </property>
    <property name="text">
-    <string>Sign out</string>
+    <string>注销</string>
+   </property>
+   <property name="toolTip">
+    <string>注销</string>
    </property>
   </action>
   <action name="actionAway">
@@ -184,7 +196,10 @@
      <normaloff>:/icons/resource/orange.png</normaloff>:/icons/resource/orange.png</iconset>
    </property>
    <property name="text">
-    <string>Away</string>
+    <string>离开</string>
+   </property>
+   <property name="toolTip">
+    <string>离开</string>
    </property>
   </action>
  </widget>

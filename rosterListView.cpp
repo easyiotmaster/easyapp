@@ -30,10 +30,10 @@
 
 rosterListView::rosterListView(QWidget* parent)
     : QListView(parent)
-    , m_chat("Chat", this)
-    , m_profile("View Profile", this)
-    , m_removeContact("Remove", this)
-    , m_ota("OTA Set",this)
+    , m_chat(tr("通讯助手"), this)
+    , m_profile(tr("个人档案"), this)
+    , m_removeContact(tr("移除联系人"), this)
+    , m_ota(tr("OTA 设置"),this)
 {
     bool check;
     Q_UNUSED(check);
@@ -76,7 +76,7 @@ void rosterListView::mousePressed(const QModelIndex& index)
         QMenu menu(this);
         menu.addAction(&m_chat);
         menu.setDefaultAction(&m_chat);
-        menu.addAction(&m_ota);
+        //menu.addAction(&m_ota);
         menu.addAction(&m_profile);
         menu.addAction(&m_removeContact);
         menu.exec(QCursor::pos());

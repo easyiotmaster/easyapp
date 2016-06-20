@@ -35,9 +35,9 @@ aboutDialog::aboutDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowTitle(QString("About %1").arg(qApp->applicationName()));
+    setWindowTitle(QString(tr("关于 %1")).arg(qApp->applicationName()));
 
-    ui->textEdit->append(QString("Copyright (C) 2008-2014 The QXmpp developers\n"));
+    ui->textEdit->append(QString("Copyright (C) 2016-2020 The EasyIOT developers\n"));
     ui->textEdit->append(qApp->applicationName() + " " + qApp->applicationVersion());
     ui->textEdit->append(QString("\nBased on:"));
     ui->textEdit->append(QString("QXmpp %1").arg(QXmppVersion()));

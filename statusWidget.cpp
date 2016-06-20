@@ -140,7 +140,7 @@ void statusWidget::setPresenceAndStatusType(QXmppPresence::Type presenceType,
 void statusWidget::avatarSelection()
 {
     QString fileFilters = QString("Images (*.png *.jpeg *.jpg *.gif *.bmp);;All Files (*.*)");
-    QString file = QFileDialog::getOpenFileName(this, "Select your avatar",
+    QString file = QFileDialog::getOpenFileName(this, tr("选择你的头像"),
                                                 QString(), fileFilters);
     if(file.isEmpty())
         return;
@@ -153,7 +153,7 @@ void statusWidget::avatarSelection()
         emit avatarChanged(scaled);
     }
     else
-        QMessageBox::information(this, "Avatar selection", "Invalid image file");
+        QMessageBox::information(this, tr("头像选择"), tr("无效的图像文件"));
 }
 
 void statusWidget::setDisplayName(const QString& name)

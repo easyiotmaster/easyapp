@@ -29,6 +29,7 @@
 #else
 #include <QDesktopServices>
 #endif
+#include <QObject>
 
 int comparisonWeightsPresenceStatusType(QXmppPresence::AvailableStatusType statusType)
 {
@@ -79,23 +80,23 @@ QString presenceToStatusText(const QXmppPresence& presence)
             switch(presence.availableStatusType())
             {
             case QXmppPresence::Invisible:
-                statusText = "Offline";
+                statusText = QObject::tr("离线");
                 break;
             case QXmppPresence::Online:
             case QXmppPresence::Chat:
-                statusText = "Available";
+                statusText = QObject::tr("在线");
                 break;
             case QXmppPresence::Away:
             case QXmppPresence::XA:
-                statusText = "Idle";
+                statusText = QObject::tr("空闲");
                 break;
             case QXmppPresence::DND:
-                statusText = "Busy";
+                statusText = QObject::tr("忙碌");
                 break;
             }
         }
         else
-            statusText = "Offline";
+            statusText = QObject::tr("离线");
     }
 
     return statusText;

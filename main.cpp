@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    QApplication::setOrganizationName("QXmpp");
+    QApplication::setOrganizationName("EasyIOT");
     QApplication::setApplicationName("GuiClient");
 
     QDir dir;

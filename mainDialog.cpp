@@ -52,8 +52,8 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     m_trayIcon(this), m_trayIconMenu(this),
 #endif
 
-    m_quitAction("Quit", this),
-    m_signOutAction("Sign out", this),
+    m_quitAction(tr("退出"), this),
+    m_signOutAction(tr("注销"), this),
     m_tcpSetDlg(this),
     m_settingsMenu(0)
 {
@@ -497,13 +497,13 @@ void mainDialog::updateStatusWidget()
 
 void mainDialog::signIn()
 {
-    ui->label_throbber->show();
+   /* ui->label_throbber->show();
     ui->pushButton_signIn->setDisabled(true);
     ui->pushButton_cancel->setDisabled(false);
     ui->lineEdit_userName->setDisabled(true);
     ui->lineEdit_password->setDisabled(true);
     ui->checkBox_rememberPasswd->setDisabled(true);
-    showLoginStatusWithProgress("Connecting");
+    showLoginStatusWithProgress(tr("连接中"));
 
     QString bareJid = ui->lineEdit_userName->text();
     QString passwd = ui->lineEdit_password->text();
@@ -511,15 +511,16 @@ void mainDialog::signIn()
     m_xmppClient.configuration().setJid(bareJid);
     m_xmppClient.configuration().setPassword(passwd);
 
-    m_xmppClient.configuration().setHost(/*"jareymobile.com.tw"*/ui->lineEdit_host->text());
-    m_xmppClient.configuration().setPort(/*20030*/ui->lineEdit_port->text().toInt());
+    m_xmppClient.configuration().setHost(ui->lineEdit_host->text());//"jareymobile.com.tw"
+    m_xmppClient.configuration().setPort(ui->lineEdit_port->text().toInt());//20030
 
     m_rosterItemModel.clear();
 
     m_vCardCache.loadFromFile();
     m_capabilitiesCache.loadFromFile();
 
-    startConnection();
+    startConnection();*/
+    signIn(ui->lineEdit_userName->text(),ui->lineEdit_password->text());
 }
 
 void mainDialog::signIn(const QString &userName, const QString &password)
@@ -530,7 +531,7 @@ void mainDialog::signIn(const QString &userName, const QString &password)
     ui->lineEdit_userName->setDisabled(true);
     ui->lineEdit_password->setDisabled(true);
     ui->checkBox_rememberPasswd->setDisabled(true);
-    showLoginStatusWithProgress("Connecting");
+    showLoginStatusWithProgress(tr("连接中"));
     ui->lineEdit_userName->setText(userName);
     ui->lineEdit_password->setText(password);
     QString bareJid = userName;
@@ -563,7 +564,7 @@ void mainDialog::cancelSignIn()
     ui->label_throbber->hide();
     m_xmppClient.disconnectFromServer();
     showSignInPage();
-    showLoginStatus("Sign in cancelled");
+    showLoginStatus(tr("登录已经取消"));
     addAccountToCache();
 }
 
@@ -591,7 +592,7 @@ void mainDialog::showSignInPageAfterUserDisconnection()
     m_debugDlgList.clear();
     ui->label_throbber->hide();
 
-    showLoginStatus("Disconnected");
+    showLoginStatus(tr("未连接"));
     showSignInPage();
 
     onlineMap.clear();
@@ -757,32 +758,32 @@ void mainDialog::createSettingsMenu()
     m_settingsMenu = new QMenu(ui->pushButton_settings);
 //    ui->pushButton_settings->setMenu(m_settingsMenu);
 
-    QAction* aboutDlg = new QAction("About", ui->pushButton_settings);
+    QAction* aboutDlg = new QAction(tr("关于EasyIOT"), ui->pushButton_settings);
     connect(aboutDlg, SIGNAL(triggered()), SLOT(action_aboutDlg()));
     m_settingsMenu->addAction(aboutDlg);
 
     m_settingsMenu->addSeparator();
 
-    QAction* showXml = new QAction("Show XML Console...", ui->pushButton_settings);
+    QAction* showXml = new QAction(tr("显示 XML 控制台..."), ui->pushButton_settings);
     connect(showXml, SIGNAL(triggered()), SLOT(action_showXml()));
     m_settingsMenu->addAction(showXml);
 
-    QAction* tcpServer = new QAction("TcpServer Set",ui->pushButton_settings);
+    QAction* tcpServer = new QAction(tr("TcpServer 设置"),ui->pushButton_settings);
     connect(tcpServer,SIGNAL(triggered()),SLOT(action_tcpServerSet()));
     m_settingsMenu->addAction(tcpServer);
 
-    QMenu* viewMenu = new QMenu("View", ui->pushButton_settings);
+    QMenu* viewMenu = new QMenu(tr("视图"), ui->pushButton_settings);
     m_settingsMenu->addMenu(viewMenu);
 
 
-    QAction* showOfflineContacts = new QAction("Show offline contacts", ui->pushButton_settings);
+    QAction* showOfflineContacts = new QAction(tr("显示离线联系人"), ui->pushButton_settings);
     showOfflineContacts->setCheckable(true);
     showOfflineContacts->setChecked(true);
     connect(showOfflineContacts, SIGNAL(triggered(bool)),
             &m_rosterItemSortFilterModel, SLOT(setShowOfflineContacts(bool)));
     viewMenu->addAction(showOfflineContacts);
 
-    QAction* sortByName = new QAction("Sort by name", ui->pushButton_settings);
+    QAction* sortByName = new QAction(tr("按名称排序"), ui->pushButton_settings);
     sortByName->setCheckable(true);
     sortByName->setChecked(false);
     connect(sortByName, SIGNAL(triggered(bool)),
@@ -815,15 +816,15 @@ void mainDialog::action_trayIconActivated(QSystemTrayIcon::ActivationReason reas
 void mainDialog::action_addContact()
 {
     bool ok;
-    QString bareJid = QInputDialog::getText(this, "Add a jabber contact",
-                                            "Contact ID:", QLineEdit::Normal, "", &ok);
+    QString bareJid = QInputDialog::getText(this,tr("添加一个联系人"),
+                                            tr("联系人 ID:"), QLineEdit::Normal, "", &ok);
 
     if(!ok)
         return;
 
     if(!isValidBareJid(bareJid))
     {
-        QMessageBox::information(this, "Invalid ID", "Specified ID <I>"+bareJid + " </I> is invalid.");
+        QMessageBox::information(this, tr("无效 ID"), tr("指定的 ID <I>") + bareJid + tr(" </I> 是无效的"));
         return;
     }
 
@@ -849,10 +850,10 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
     {
     case QXmppPresence::Subscribe:
         {
-            message = "<B>%1</B> wants to subscribe";
+            message = tr("<B>%1</B> 请求订阅");
 
             int retButton = QMessageBox::question(
-                    this, "Contact Subscription", message.arg(from),
+                    this, tr("联系人订阅申请"), message.arg(from),
                     QMessageBox::Yes, QMessageBox::No);
 
             switch(retButton)
@@ -887,13 +888,13 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
         }
         break;
     case QXmppPresence::Subscribed:
-        message = "<B>%1</B> accepted your request";
+        message = tr("<B>%1</B> 通过了你的申请");
         break;
     case QXmppPresence::Unsubscribe:
-        message = "<B>%1</B> unsubscribe";
+        message = tr("<B>%1</B> 取消订阅");
         break;
     case QXmppPresence::Unsubscribed:
-        message = "<B>%1</B> unsubscribed";
+        message = tr("<B>%1</B> 已退订");
         break;
     default:
         return;
@@ -903,7 +904,7 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
     if(message.isEmpty())
         return;
 
-    QMessageBox::information(this, "Contact Subscription", message.arg(from),
+    QMessageBox::information(this, tr("联系人订阅"), message.arg(from),
             QMessageBox::Ok);
 }
 
@@ -912,8 +913,8 @@ void mainDialog::action_removeContact(const QString& bareJid)
     if(!isValidBareJid(bareJid))
         return;
 
-    int answer = QMessageBox::question(this, "Remove contact",
-                            QString("Do you want to remove the contact <I>%1</I>").arg(bareJid),
+    int answer = QMessageBox::question(this,tr("移除联系人"),
+                            QString("确定要移除联系人 <I>%1</I> 吗？").arg(bareJid),
                             QMessageBox::Yes, QMessageBox::No);
     if(answer == QMessageBox::Yes)
     {
@@ -938,19 +939,19 @@ void mainDialog::errorClient(QXmppClient::Error error)
     switch(error)
     {
     case QXmppClient::SocketError:
-        showLoginStatus("Socket error");
+        showLoginStatus(tr("Socket error"));
         break;
     case QXmppClient::KeepAliveError:
-        showLoginStatus("Keep alive error");
+        showLoginStatus(tr("Keep alive error"));
         break;
     case QXmppClient::XmppStreamError:
         switch(m_xmppClient.xmppStreamError())
         {
         case QXmppStanza::Error::NotAuthorized:
-            showLoginStatus("Invalid password");
+            showLoginStatus(tr("Invalid password"));
             break;
         default:
-            showLoginStatus("Stream error");
+            showLoginStatus(tr("Stream error"));
             break;
         }
         break;
