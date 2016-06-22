@@ -656,7 +656,18 @@ void DebugDialog::httpDownloadFinish()
         ui->pgb_download->hide();
         return;
     }
-    outFile.open(QIODevice::WriteOnly);
+    outFile.remove(outFile.fileName());
+    if(!outFile.open(QIODevice::WriteOnly|QIODevice::Append))
+    {
+        insertTextToTextBrowser("led outfile open failed",LEDUPDATE);
+        m_ledTemplateFirmwareFile.close();
+        m_ledFirmwareFile.close();
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+
     if(m_ledTemplateFirmwareFile.size() < 20*1024)
     {
         insertTextToTextBrowser("led template file's size less than 20KB",LEDUPDATE);
@@ -668,17 +679,37 @@ void DebugDialog::httpDownloadFinish()
         ui->pgb_download->hide();
         return;
     }
-   // char buff[20*1024];
-    //m_ledTemplateFirmwareFile.read(buff,20*1024);
+    char buff1[100*1024];
+    char buff2[20*1024];
+
+    unsigned len1,len2;
+    len1 = m_ledTemplateFirmwareFile.size();
+    m_ledTemplateFirmwareFile.read(buff1,len1);
+    len2 = m_ledFirmwareFile.size();
+    m_ledFirmwareFile.read(buff2,len2);
+    memcpy(buff1+20*1024,&len2,4);
+    memcpy(buff1+20*1024+4,buff2,len2);
+    outFile.write(buff1,len1);
+
+    /*
     outFile.write(m_ledTemplateFirmwareFile.read(20*1024));
+
     quint32 ledFileLen = m_ledFirmwareFile.size();
+    qDebug()<<ledFileLen;
     char ledFileLenBuff[4];
     memcpy(ledFileLenBuff,&ledFileLen,4);
+    qDebug()<<int(ledFileLenBuff[0])<<int(ledFileLenBuff[1])<<int(ledFileLenBuff[2])<<int(ledFileLenBuff[3]);
     outFile.write(ledFileLenBuff,4);
-    outFile.write(m_ledFirmwareFile.readAll());
+
+    //QByteArray arr = m_ledFirmwareFile.readAll();
+    char ledFileBuf[100*1024];
+    qDebug()<<ledFileLen<<m_ledFirmwareFile.read(ledFileBuf,ledFileLen);
+    outFile.write(ledFileBuf,ledFileLen);*/
+
     m_ledTemplateFirmwareFile.close();
     m_ledFirmwareFile.close();
     outFile.close();
+
     insertTextToTextBrowser("combin finished",LEDUPDATE);
     remoteDownload(outFile.fileName());
 
