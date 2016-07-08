@@ -27,13 +27,14 @@
 
 #include "mainDialog.h"
 #include "utils.h"
-
+#include "global.h"
+#include "QString"
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    QApplication::setOrganizationName("EasyIOT");
-    QApplication::setApplicationName("GuiClient");
+    QApplication::setOrganizationName(QString("EasyIOT-%1.%2").arg(MAJOR_VERSION).arg(MINOR_VERSION));
+    QApplication::setApplicationName("EasyIOT");
 
     QDir dir;
     if(!dir.exists(getSettingsDir()))

@@ -31,8 +31,8 @@
 rosterListView::rosterListView(QWidget* parent)
     : QListView(parent)
     , m_chat(tr("通讯助手"), this)
-    , m_profile(tr("个人档案"), this)
-    , m_removeContact(tr("移除联系人"), this)
+    , m_profile(tr("设备信息"), this)
+    , m_removeContact(tr("移除设备"), this)
     , m_ota(tr("OTA 设置"),this)
 {
     bool check;

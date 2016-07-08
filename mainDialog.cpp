@@ -42,7 +42,7 @@
 #include <QKeyEvent>
 #include <QDir>
 #include <QSettings>
-
+#include "global.h"
 mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     ui(new Ui::mainDialogClass), m_rosterItemModel(this),
     m_rosterItemSortFilterModel(this), m_vCardCache(&m_xmppClient),
@@ -55,7 +55,8 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     m_quitAction(tr("退出"), this),
     m_signOutAction(tr("注销"), this),
     m_tcpSetDlg(this),
-    m_settingsMenu(0)
+    m_settingsMenu(0),
+    openAdvancedSetting(false)
 {
     bool check;
     Q_UNUSED(check);
@@ -156,7 +157,7 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     check = connect(&m_xmppClient, SIGNAL(disconnected()), SLOT(showSignInPageAfterUserDisconnection()));
     Q_ASSERT(check);
 
-    check = connect(&m_xmppClient,SIGNAL(disconnected()),&m_tcpServer,SLOT(stopAccept()));
+    check = connect(&m_xmppClient,SIGNAL(disconnected()),SLOT(stopTcpServer()));
     Q_ASSERT(check);
 
     check = connect(&m_xmppClient.vCardManager(),SIGNAL(vCardReceived(QXmppVCardIq)), &m_vCardCache,SLOT(vCardReceived(QXmppVCardIq)));
@@ -180,10 +181,14 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     check = connect(&m_tcpServer,SIGNAL(setPresenceStatus(QString)),SLOT(statusTextChanged(QString)));
     Q_ASSERT(check);
 
+    addAdvancedSettingsLabel();
+    check = connect(m_lab_advancedSetting,SIGNAL(clicked()),SLOT(pressAdvancedSettingLabel()));
+    Q_ASSERT(check);
 }
 
 void mainDialog::rosterChanged(const QString& bareJid)
 {
+
     m_rosterItemModel.updateRosterEntry(bareJid, m_xmppClient.rosterManager().
                                         getRosterEntry(bareJid));
 
@@ -776,7 +781,7 @@ void mainDialog::createSettingsMenu()
     m_settingsMenu->addMenu(viewMenu);
 
 
-    QAction* showOfflineContacts = new QAction(tr("显示离线联系人"), ui->pushButton_settings);
+    QAction* showOfflineContacts = new QAction(tr("显示离线设备"), ui->pushButton_settings);
     showOfflineContacts->setCheckable(true);
     showOfflineContacts->setChecked(true);
     connect(showOfflineContacts, SIGNAL(triggered(bool)),
@@ -816,8 +821,10 @@ void mainDialog::action_trayIconActivated(QSystemTrayIcon::ActivationReason reas
 void mainDialog::action_addContact()
 {
     bool ok;
-    QString bareJid = QInputDialog::getText(this,tr("添加一个联系人"),
-                                            tr("联系人 ID:"), QLineEdit::Normal, "", &ok);
+    QString bareJid = QInputDialog::getText(this,tr("添加一个设备"),
+                                            tr("设备 ID:"), QLineEdit::Normal, "", &ok);
+    if(!bareJid.contains("@easyio"))
+        bareJid += "@easyio";
 
     if(!ok)
         return;
@@ -853,18 +860,20 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
             message = tr("<B>%1</B> 请求订阅");
 
             int retButton = QMessageBox::question(
-                    this, tr("联系人订阅申请"), message.arg(from),
+                    this, tr("设备订阅申请"), message.arg(from),
                     QMessageBox::Yes, QMessageBox::No);
 
             switch(retButton)
             {
             case QMessageBox::Yes:
                 {
+                    //先同意对方的订阅请求
                     QXmppPresence subscribed;
                     subscribed.setTo(from);
                     subscribed.setType(QXmppPresence::Subscribed);
                     m_xmppClient.sendPacket(subscribed);
 
+                    //在请求订阅对方
                     // reciprocal subscription
                     QXmppPresence subscribe;
                     subscribe.setTo(from);
@@ -874,6 +883,7 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
                 break;
             case QMessageBox::No:
                 {
+                    //拒绝对方的订阅请求也不订阅对方
                     QXmppPresence unsubscribed;
                     unsubscribed.setTo(from);
                     unsubscribed.setType(QXmppPresence::Unsubscribed);
@@ -894,7 +904,7 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
         message = tr("<B>%1</B> 取消订阅");
         break;
     case QXmppPresence::Unsubscribed:
-        message = tr("<B>%1</B> 已退订");
+        message = tr("<B>%1</B> 拒绝订阅");
         break;
     default:
         return;
@@ -904,7 +914,7 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
     if(message.isEmpty())
         return;
 
-    QMessageBox::information(this, tr("联系人订阅"), message.arg(from),
+    QMessageBox::information(this, tr("设备订阅"), message.arg(from),
             QMessageBox::Ok);
 }
 
@@ -913,8 +923,8 @@ void mainDialog::action_removeContact(const QString& bareJid)
     if(!isValidBareJid(bareJid))
         return;
 
-    int answer = QMessageBox::question(this,tr("移除联系人"),
-                            QString("确定要移除联系人 <I>%1</I> 吗？").arg(bareJid),
+    int answer = QMessageBox::question(this,tr("移除设备"),
+                            QString("确定要移除设备 <I>%1</I> 吗？").arg(bareJid),
                             QMessageBox::Yes, QMessageBox::No);
     if(answer == QMessageBox::Yes)
     {
@@ -965,6 +975,55 @@ void mainDialog::loadUserConfig()
     m_tcpServer.setTcpPort(IniConfig::getTcpServerPort(m_xmppClient.configuration().jidBare()));
 }
 
+void mainDialog::addAdvancedSettingsLabel()
+{
+    m_lab_advancedSetting = new Label(this);
+    m_lab_advancedSetting->setText(tr("高级设置"));
+    m_lab_advancedSetting->setStyleSheet("color: blue;text-decoration: underline;");
+    ui->horizontalLayout_5->insertWidget(0,m_lab_advancedSetting);
+    openAdvancedSetting = false;
+    hideAdvancedSetting();
+    m_lab_advancedSetting->setCursor(Qt::PointingHandCursor);
+}
+
+void mainDialog::pressAdvancedSettingLabel()
+{
+    openAdvancedSetting = !openAdvancedSetting;
+    if(openAdvancedSetting)
+    {
+        showAdvanceSettings();
+    }
+    else
+    {
+        hideAdvancedSetting();
+    }
+}
+
+void mainDialog::hideAdvancedSetting()
+{
+    ui->label_4->hide();
+    ui->label_5->hide();
+    ui->lineEdit_host->hide();
+    ui->lineEdit_port->hide();
+    //this->pos();
+    this->resize(203,415);
+    //QRect r = this->geometry();
+    //r.setHeight(403);
+    //this->setGeometry(r);
+}
+
+void mainDialog::showAdvanceSettings()
+{
+    ui->label_4->show();
+    ui->label_5->show();
+    ui->lineEdit_host->show();
+    ui->lineEdit_port->show();
+    this->resize(203,503);
+    //QRect r = this->geometry();
+    //r.setHeight(503);
+    //this->setGeometry(r);
+}
+
 void mainDialog::setTcpServerPort(quint16 port)
 {
     m_tcpServer.setTcpPort(port);
@@ -973,12 +1032,16 @@ void mainDialog::setTcpServerPort(quint16 port)
 
 bool mainDialog::startTcpServer()
 {
-    return m_tcpServer.startAccept();
+    bool ret =  m_tcpServer.startAccept();
+    if(ret)
+        setWindowTitle(tr("EasyIOT-%1.%2-TCP监听中").arg(MAJOR_VERSION).arg(MINOR_VERSION));
+    return ret;
 }
 
 void mainDialog::stopTcpServer()
 {
     m_tcpServer.stopAccept();
+    setWindowTitle(tr("EasyIOT-%1.%2").arg(MAJOR_VERSION).arg(MINOR_VERSION));
 }
 
 void mainDialog::action_showXml()

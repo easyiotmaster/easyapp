@@ -36,7 +36,8 @@ SOURCES += main.cpp \
     webchannel/websockettransport.cpp \
     otherplatformssignin.cpp \
     debugdialog.cpp \
-    messagelog.cpp
+    messagelog.cpp \
+    label.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -70,7 +71,9 @@ HEADERS += chatMsgGraphicsItem.h \
     webchannel/websockettransport.h \
     otherplatformssignin.h \
     debugdialog.h \
-    messagelog.h
+    messagelog.h \
+    label.h \
+    global.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \

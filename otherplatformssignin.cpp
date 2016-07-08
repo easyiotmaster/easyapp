@@ -1,6 +1,7 @@
 #include "otherplatformssignin.h"
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDebug>
 OtherPlatformsSignIn::OtherPlatformsSignIn(QObject *parent) : QObject(parent)
 {
 
@@ -11,7 +12,6 @@ OtherPlatformsSignIn::OtherPlatformsSignIn(QObject *parent) : QObject(parent)
     {
         m_port = 1000+qrand()%60000;
     }
-
     // wrap WebSocket clients in QWebChannelAbstractTransport objects
     m_clientWrapper = new WebSocketClientWrapper(m_server);
 

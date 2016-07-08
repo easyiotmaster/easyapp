@@ -43,6 +43,7 @@
 #include "iniconfig.h"
 #include "otherplatformssignin.h"
 #include "debugdialog.h"
+#include "label.h"
 class chatDialog;
 
 class QKeyEvent;
@@ -59,9 +60,8 @@ class mainDialog : public QDialog
 
 public:
     mainDialog(QWidget *parent = 0);
-    void setTcpServerPort(quint16 port);//设置tcp服务器端口号
-    bool startTcpServer();
-    void stopTcpServer();
+
+
 protected:
     void keyPressEvent(QKeyEvent*);
     void closeEvent(QCloseEvent* event);
@@ -96,7 +96,10 @@ private slots:
     void presenceReceived(const QXmppPresence&);
     void errorClient(QXmppClient::Error);
     void loadUserConfig();//登录后读取用户配置信息
-
+    void addAdvancedSettingsLabel();
+    void pressAdvancedSettingLabel();
+    void hideAdvancedSetting();
+    void showAdvanceSettings();
 
     void action_addContact();
     void action_removeContact(const QString& bareJid);
@@ -108,6 +111,10 @@ private slots:
     void action_aboutDlg();
     void action_settingsPressed();
     void action_tcpServerSet();
+public slots:
+    void setTcpServerPort(quint16 port);//设置tcp服务器端口号
+    bool startTcpServer();
+    void stopTcpServer();
 private:
     void loadAccounts();
     void createTrayIconAndMenu();
@@ -146,5 +153,7 @@ private:
 
     QMap<QString,bool> onlineMap;
 
+    Label   *m_lab_advancedSetting;
+    bool    openAdvancedSetting;
 };
 #endif // MAINDIALOG_H

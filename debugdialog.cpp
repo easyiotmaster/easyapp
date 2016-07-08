@@ -166,7 +166,6 @@ int DebugDialog::parseRemoteDownloadACK(const QString &msg)
             }
 
         }
-        qDebug()<<downSizeStr<<totalSizeStr;
         quint64 downSize = downSizeStr.toLong();
         quint64 totalSize = totalSizeStr.toLong();
         if(totalSize != 0)
@@ -668,9 +667,31 @@ void DebugDialog::httpDownloadFinish()
         return;
     }
 
-    if(m_ledTemplateFirmwareFile.size() < 20*1024)
+    if(m_ledTemplateFirmwareFile.size() < 40*1024)
     {
-        insertTextToTextBrowser("led template file's size less than 20KB",LEDUPDATE);
+        insertTextToTextBrowser("led template file's size less than 40KB",LEDUPDATE);
+        m_ledTemplateFirmwareFile.close();
+        m_ledFirmwareFile.close();
+        outFile.close();
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+    else if(m_ledTemplateFirmwareFile.size() > 100*1024)
+    {
+        insertTextToTextBrowser("led template file's size greater than 100KB",LEDUPDATE);
+        m_ledTemplateFirmwareFile.close();
+        m_ledFirmwareFile.close();
+        outFile.close();
+        m_toolMenu->setDisabled(false);
+        ui->pgb_download->setValue(0);
+        ui->pgb_download->hide();
+        return;
+    }
+    if(m_ledFirmwareFile.size() > 20*1024)
+    {
+        insertTextToTextBrowser("led firmware file's size greater than 20KB",LEDUPDATE);
         m_ledTemplateFirmwareFile.close();
         m_ledFirmwareFile.close();
         outFile.close();
@@ -690,21 +711,6 @@ void DebugDialog::httpDownloadFinish()
     memcpy(buff1+20*1024,&len2,4);
     memcpy(buff1+20*1024+4,buff2,len2);
     outFile.write(buff1,len1);
-
-    /*
-    outFile.write(m_ledTemplateFirmwareFile.read(20*1024));
-
-    quint32 ledFileLen = m_ledFirmwareFile.size();
-    qDebug()<<ledFileLen;
-    char ledFileLenBuff[4];
-    memcpy(ledFileLenBuff,&ledFileLen,4);
-    qDebug()<<int(ledFileLenBuff[0])<<int(ledFileLenBuff[1])<<int(ledFileLenBuff[2])<<int(ledFileLenBuff[3]);
-    outFile.write(ledFileLenBuff,4);
-
-    //QByteArray arr = m_ledFirmwareFile.readAll();
-    char ledFileBuf[100*1024];
-    qDebug()<<ledFileLen<<m_ledFirmwareFile.read(ledFileBuf,ledFileLen);
-    outFile.write(ledFileBuf,ledFileLen);*/
 
     m_ledTemplateFirmwareFile.close();
     m_ledFirmwareFile.close();

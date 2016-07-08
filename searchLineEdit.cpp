@@ -52,7 +52,7 @@ void searchLineEdit::paintEvent(QPaintEvent *e) {
     {
         painter.setPen(Qt::gray);
         QRect r = rect();
-        painter.drawText(24, r.height()/2+4, tr("搜索联系人"));
+        painter.drawText(24, r.height()/2+4, tr("搜索设备"));
     }
 
     if(text().isEmpty())

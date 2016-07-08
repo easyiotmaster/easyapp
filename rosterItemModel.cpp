@@ -23,7 +23,8 @@
 
 
 #include "rosterItemModel.h"
-
+#include <QtDebug>
+#include <QTime>
 rosterItemModel::rosterItemModel(QObject* parent) : QStandardItemModel(parent)
 {
 //    addRosterItemIfDontExist("jkhjkhkhkhk");
@@ -63,18 +64,37 @@ void rosterItemModel::updatePresence(const QString& bareJid, const QMap<QString,
 
 void rosterItemModel::updateRosterEntry(const QString& bareJid, const QXmppRosterIq::Item& rosterEntry)
 {
-    getOrCreateItem(bareJid)->setName(rosterEntry.name());
+    int subscriptionType = rosterEntry.subscriptionType();
+    qDebug()<<subscriptionType;
+    if(subscriptionType == 0 || subscriptionType == 1)//如果没有订阅对方 就删除该联系人
+    {
+        if(m_jidRosterItemMap.contains(bareJid))
+        {
+            removeRow(m_jidRosterItemMap[bareJid]->row());
+            m_jidRosterItemMap.remove(bareJid);
+            qDebug()<<__func__;
+        }
+    }
+    else
+        getOrCreateItem(bareJid)->setName(rosterEntry.name());
 }
 
 void rosterItemModel::updateAvatar(const QString& bareJid, const QImage& image)
 {
-    getOrCreateItem(bareJid)->setAvatar(image);
+    if(m_jidRosterItemMap.contains(bareJid))
+    {
+        qDebug()<<__func__;
+        getOrCreateItem(bareJid)->setAvatar(image);
+    }
 }
 
 void rosterItemModel::updateName(const QString& bareJid, const QString& name)
 {
-    if (!name.isEmpty())
+    if (m_jidRosterItemMap.contains(bareJid) && !name.isEmpty())
+    {
+        qDebug()<<__func__;
         getOrCreateItem(bareJid)->setName(name);
+    }
 }
 
 void rosterItemModel::clear()
@@ -89,5 +109,6 @@ void rosterItemModel::removeRosterEntry(const QString& bareJid)
     if(item)
     {
         removeRow(item->row());
+        m_jidRosterItemMap.remove(bareJid);
     }
 }
