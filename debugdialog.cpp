@@ -58,6 +58,12 @@ QString DebugDialog::getDownloadResource()
     return "";
 }
 
+int DebugDialog::parseByBase64(const QString &msg)
+{
+    msg.indexOf()
+}
+
+
 int DebugDialog::parseRemoteDownloadACK(const QString &msg)
 {
     if(msg == "ERROR")
@@ -384,6 +390,7 @@ void DebugDialog::setQXmppClient(QXmppClient *client)
 void DebugDialog::messageReceived(const QXmppMessage &msg)
 {
     insertTextToTextBrowser(msg.body(),RECV_MESSAGE);
+
 
     if(parseRemoteDownloadACK(msg.body()) == 1)
         m_remoteDownloadTimer->start(ATTIMEOUT);

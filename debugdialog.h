@@ -61,6 +61,7 @@ private:
     QString getDownloadFileName();//选择一个远程下载文件
     QString getLedFileName();//选择一个LED更新文件
     QString getDownloadResource();//要下载的resource类型
+    int     parseByBase64(const QString &msg);//使用Base64解析消息类型
     int     parseRemoteDownloadACK(const QString &msg);//解析远程下载的回复信息
     void    insertTextToTextBrowser(const QString &msg,BROWSER_TEXT_TYPE type);//插入消息到文本框
     void    createToolMenu();//创建工具菜单
