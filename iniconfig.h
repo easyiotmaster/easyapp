@@ -17,9 +17,12 @@ public:
     static QString getConfigFileName(const QString &jidBare);
     static QString getRemoteDownloadPath(const QString &jidBare);
     static QString getLedFilePath(const QString &jidBare);
+    static QString getOtaFilePath(const QString &jidBare);
     static QString getLedTemplateFilePath(const QString &jidBare);
+    static QString getSaveImageFilePath(const QString &local_jidBare,const QString &remote_jidBare);
     static void    setRemoteDownloadPath(const QString &path,const QString &jidBare);
     static void    setLedFilePath(const QString &path,const QString &jidBare);
+    static void    setOtaFilePath(const QString &path,const QString &jidBare);
 };
 
 #endif // INICONFIG_H

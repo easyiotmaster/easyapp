@@ -37,7 +37,10 @@ SOURCES += main.cpp \
     otherplatformssignin.cpp \
     debugdialog.cpp \
     messagelog.cpp \
-    label.cpp
+    label.cpp \
+    sqlhelper.cpp \
+    at/atparse.cpp \
+    at/conv_hex_str.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -73,7 +76,10 @@ HEADERS += chatMsgGraphicsItem.h \
     debugdialog.h \
     messagelog.h \
     label.h \
-    global.h
+    global.h \
+    sqlhelper.h \
+    at/atparse.h \
+    at/conv_hex_str.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
@@ -88,7 +94,8 @@ QT += network \
     xml \
     widgets \
     webchannel \
-    websockets
+    websockets  \
+    sql
 
 RESOURCES += resources.qrc
 CONFIG(debug, debug|release) {

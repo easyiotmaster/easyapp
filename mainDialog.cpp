@@ -71,6 +71,8 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     showSignInPage();
     loadAccounts();
 
+    SqlHelper::initMySqlDataBase();
+
     check = connect(ui->lineEdit_userName->completer(),SIGNAL(activated(QString)),this, SLOT(userNameCompleter_activated(QString)));
     Q_ASSERT(check);
 
@@ -218,7 +220,7 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
                                              getAllPresencesForBareJid(bareJid);
     m_rosterItemModel.updatePresence(bareJid, presences);
 
-    if(m_debugDlgList.value(bareJid,0) != 0)
+    if(m_debugDlgList.contains(bareJid))
         m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
 
     if(presences.contains(resource))

@@ -44,11 +44,13 @@
 #include "otherplatformssignin.h"
 #include "debugdialog.h"
 #include "label.h"
+#include "sqlhelper.h"
 class chatDialog;
 
 class QKeyEvent;
 
 class TcpSetDialog;
+
 namespace Ui
 {
     class mainDialogClass;
