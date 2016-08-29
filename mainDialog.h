@@ -45,6 +45,7 @@
 #include "debugdialog.h"
 #include "label.h"
 #include "sqlhelper.h"
+#include "configdialog.h"
 class chatDialog;
 
 class QKeyEvent;
@@ -113,6 +114,9 @@ private slots:
     void action_aboutDlg();
     void action_settingsPressed();
     void action_tcpServerSet();
+    void action_configParam();
+
+    void updateSignal(const QString & bareJid,int signal);
 public slots:
     void setTcpServerPort(quint16 port);//设置tcp服务器端口号
     bool startTcpServer();
@@ -151,6 +155,7 @@ private:
 
     xmlConsoleDialog m_consoleDlg;
     TcpSetDialog m_tcpSetDlg;// Tcp 设置界面
+    ConfigDialog m_configDlg;
     QMenu* m_settingsMenu;
 
     QMap<QString,bool> onlineMap;

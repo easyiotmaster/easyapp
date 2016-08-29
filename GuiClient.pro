@@ -1,4 +1,4 @@
-TARGET = GuiClient
+TARGET = EasyIOT
 TEMPLATE = app
 INCLUDEPATH += src\client
 INCLUDEPATH += src\base
@@ -40,7 +40,8 @@ SOURCES += main.cpp \
     label.cpp \
     sqlhelper.cpp \
     at/atparse.cpp \
-    at/conv_hex_str.cpp
+    at/conv_hex_str.cpp \
+    configdialog.cpp
 
 HEADERS += chatMsgGraphicsItem.h \
     chatGraphicsScene.h \
@@ -79,7 +80,8 @@ HEADERS += chatMsgGraphicsItem.h \
     global.h \
     sqlhelper.h \
     at/atparse.h \
-    at/conv_hex_str.h
+    at/conv_hex_str.h \
+    configdialog.h
 
 FORMS += mainDialog.ui \
     chatDialog.ui \
@@ -88,7 +90,8 @@ FORMS += mainDialog.ui \
     xmlConsoleDialog.ui \
     aboutDialog.ui \
     tcpsetdialog.ui \
-    debugwindow.ui
+    debugwindow.ui \
+    configdialog.ui
 
 QT += network \
     xml \

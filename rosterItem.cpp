@@ -48,12 +48,12 @@ void rosterItem::setPresence(const QXmppPresence &presence)
 {
     // determine status text
     QString statusText = presence.statusText();
-    if (statusText.isEmpty()) {
+    //if (statusText.isEmpty()) {
         if(presence.type() == QXmppPresence::Available)
             statusText = QObject::tr("在线");
         else if(presence.type() == QXmppPresence::Unavailable)
             statusText =  QObject::tr("离线");
-    }
+    //}
 
     // store data
     setData(statusText, rosterItem::StatusText);
@@ -85,6 +85,11 @@ void rosterItem::setPresence(const QXmppPresence &presence)
     }
     if (!icon.isEmpty())
         setIcon(QIcon(":/icons/resource/"+icon+".png"));
+}
+
+void rosterItem::setSign(const QString &sign)
+{
+    setData(sign, rosterItem::StatusText);
 }
 
 void rosterItem::setAvatar(const QImage& image)

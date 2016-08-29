@@ -12,7 +12,7 @@
 #include <QMenu>
 #include <QAction>
 #include "at/atparse.h"
-
+#include <QProcess>
 #define HTTP_TIMEROUT    30000
 #define AT_TIMEOUT       30000
 #define TASK_TIMEOUT     30000
@@ -32,7 +32,9 @@ private:
         AT_GETPIC,
         AT_OTA,
         AT_MSG,
-        AT_HEX
+        AT_HEX,
+        AT_SQLRESP,
+        AT_QUERY_SIGNAL
     };
 
     enum TASK
@@ -60,6 +62,8 @@ private:
         TEXT_HEX,
         TEXT_SENDHEX,
         TEXT_AT_CMD,
+        TEXT_SIG,
+        TEXT_ONLINE
     };
 
     enum DOWN_DEV_TYPE
@@ -80,6 +84,8 @@ private:
     QNetworkAccessManager* m_manager;
     QTimer*         m_taskTimer;
     QTimer*         m_atTimer;
+    QTimer*         m_waitTurnFileCloseTimer;
+    QTimer*         m_querySigTimer;
     QMenu*          m_toolMenu;
     QAction*        m_remoteDownloadAction;
     QAction*        m_updateLCDAction;
@@ -90,7 +96,10 @@ private:
     TASK            m_currentTask;
     QString         m_currentAtCmdStr;
     AT_CMD_TYPE     m_currentAtCmdType;
-
+    QProcess*       m_turnHexProcess;
+    QString         m_turnFileName;
+    QMap<int,bool>  m_sqlPnResultMap;
+    bool            m_online;
     QString stringToHtmlFilter(const QString &str);//生成HTML文本
     QString stringToHtml(const QString &str,QColor color);//生成带颜色的HTML文本
     QString imagePathToHtml(const QString &path);
@@ -99,7 +108,7 @@ private:
     QString getDownloadResource();//要下载的resource类型
 
     bool    isWaitingAtCmdAck();//等待AT指令的发送成功回复
-    void    sendAtCmd(const QString &atStr,AT_CMD_TYPE at_type);    //发送At指令
+    void    sendAtCmd(const QString &atStr,AT_CMD_TYPE at_type,int sendType = 0);    //发送At指令
     void    parseAtCmdString(const QString &str);   //解析AT指令
     void    parseAtDownCmd(ATCMD_DATA &ad);     //解析AT DOWN指令
     void    parseAtISPCmd(ATCMD_DATA &ad);      //解析AT ISP指令
@@ -111,6 +120,7 @@ private:
     void    parseAtERRCmd(ATCMD_DATA &ad);      // at 错误指令
     void    parseAtOKCmd();     //解析AT OK指令
     void    parseAtHEXCmd(ATCMD_DATA &ad);      //解析AT HEX指令
+    void    parseAtSIGCmd(ATCMD_DATA &ad);      //解析AT SIG指令
     void    insertTextToTextBrowser(const QString &msg,BROWSER_TEXT_TYPE type);//插入消息到文本框
     void    insertImgToBrowser(const QString &str); //收到图片类型的BASE64数据
     void    createToolMenu();           //创建工具菜单
@@ -118,6 +128,8 @@ private:
     void    geLEDTemplateFirmware();    //下载LED模板文件
     void    exitCurrentTask();          //退出当前任务
     BROWSER_TEXT_TYPE getBrowserTextType(TASK task);
+    void    turnHex2Bin(const QString &fileName);
+    QString    turnFileType2Bin(const QString &filePathName);
 
 public:
     explicit DebugDialog(QWidget *parent = 0);
@@ -132,10 +144,13 @@ public:
     void setQXmppClient(QXmppClient* client);
     void messageReceived(const QXmppMessage &msg);
     void presenceReceived(const QXmppPresence &presence);
-
+    void setBareJidOnline(bool online);
+signals:
+    void updateSignal(const QString & bareJid,int signal);
 public slots:
     void sendMessage();//点击发送按钮
     void sendHexMessage();//发送AT+HEX指令
+    void sendSqlResp(int pn ,bool ok);
     void remoteUpdate();//点击远程下载
     void updateLEDFirmware();//点击更新LED
     void getPic();//点击获取图片
@@ -156,6 +171,12 @@ public slots:
     void taskTimeout();
     void atCmdTimeout();
     void readHttpData();        //保存LED文件
+
+    void turnHexProcessError(QProcess::ProcessError);//转换程序执行失败
+    void turnHexFinished(int); //转换程序执行完成
+    void waitTurnFileCloseTimeout();
+
+    void querySignal();
 
 
 protected:

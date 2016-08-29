@@ -46,6 +46,7 @@ public:
 
     void setAvatar(const QImage& image);
     void setPresence(const QXmppPresence &presence);
+    void setSign(const QString &sign);
     void setName(const QString& name);
     QImage getAvatar();
     QString getName();

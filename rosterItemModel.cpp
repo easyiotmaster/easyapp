@@ -62,17 +62,23 @@ void rosterItemModel::updatePresence(const QString& bareJid, const QMap<QString,
         item->setPresence(QXmppPresence(QXmppPresence::Unavailable));
 }
 
+void rosterItemModel::updatePresence(const QString &bareJid, const QString presence)
+{
+    rosterItem *item = getOrCreateItem(bareJid);
+    item->setSign(presence);
+}
+
 void rosterItemModel::updateRosterEntry(const QString& bareJid, const QXmppRosterIq::Item& rosterEntry)
 {
     int subscriptionType = rosterEntry.subscriptionType();
-    qDebug()<<subscriptionType;
+    //qDebug()<<subscriptionType;
     if(subscriptionType == 0 || subscriptionType == 1)//如果没有订阅对方 就删除该联系人
     {
         if(m_jidRosterItemMap.contains(bareJid))
         {
             removeRow(m_jidRosterItemMap[bareJid]->row());
             m_jidRosterItemMap.remove(bareJid);
-            qDebug()<<__func__;
+            //qDebug()<<__func__;
         }
     }
     else
@@ -83,7 +89,7 @@ void rosterItemModel::updateAvatar(const QString& bareJid, const QImage& image)
 {
     if(m_jidRosterItemMap.contains(bareJid))
     {
-        qDebug()<<__func__;
+        //qDebug()<<__func__;
         getOrCreateItem(bareJid)->setAvatar(image);
     }
 }
@@ -92,7 +98,7 @@ void rosterItemModel::updateName(const QString& bareJid, const QString& name)
 {
     if (m_jidRosterItemMap.contains(bareJid) && !name.isEmpty())
     {
-        qDebug()<<__func__;
+        //qDebug()<<__func__;
         getOrCreateItem(bareJid)->setName(name);
     }
 }

@@ -55,8 +55,10 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     m_quitAction(tr("退出"), this),
     m_signOutAction(tr("注销"), this),
     m_tcpSetDlg(this),
+    m_configDlg(&m_xmppClient),
     m_settingsMenu(0),
     openAdvancedSetting(false)
+
 {
     bool check;
     Q_UNUSED(check);
@@ -70,8 +72,6 @@ mainDialog::mainDialog(QWidget *parent): QDialog(parent, Qt::Window),
     ui->label_throbber->movie()->start();
     showSignInPage();
     loadAccounts();
-
-    SqlHelper::initMySqlDataBase();
 
     check = connect(ui->lineEdit_userName->completer(),SIGNAL(activated(QString)),this, SLOT(userNameCompleter_activated(QString)));
     Q_ASSERT(check);
@@ -218,14 +218,14 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
     QString jid = bareJid + "/" + resource;
     QMap<QString, QXmppPresence> presences = m_xmppClient.rosterManager().
                                              getAllPresencesForBareJid(bareJid);
-    m_rosterItemModel.updatePresence(bareJid, presences);
-
-    if(m_debugDlgList.contains(bareJid))
-        m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+    //m_rosterItemModel.updatePresence(bareJid, presences);
+    if(!bareJid.isEmpty())
+        getDebugDialog(bareJid)->setResource(m_xmppClient.rosterManager().getResources(bareJid));
 
     if(presences.contains(resource))
     {
         QXmppPresence& presence = presences[resource];
+
         if(!onlineMap.contains(jid))
         {
             onlineMap.insert(jid,false);
@@ -234,12 +234,23 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
         if(presence.type() == QXmppPresence::Available && onlineMap.value(jid,true) == false)//上线
         {
             m_tcpServer.sendOnline(jid,true);
+            if(!bareJid.isEmpty())
+                getDebugDialog(bareJid)->setBareJidOnline(true);
             onlineMap[jid] = true;
+            m_rosterItemModel.updatePresence(bareJid, presences);
         }
         else if(presence.type() == QXmppPresence::Unavailable && onlineMap.value(jid,false) == true)//下线
         {
             m_tcpServer.sendOnline(jid,false);
+            if(!bareJid.isEmpty())
+                getDebugDialog(bareJid)->setBareJidOnline(false);
             onlineMap[jid] = false;
+            m_rosterItemModel.updatePresence(bareJid, presences);
+        }
+        else
+        {
+            if(getDebugDialog(bareJid))
+                getDebugDialog(bareJid)->presenceReceived(presence);
         }
 
         m_tcpServer.sendRecvPresence(jid,presence);
@@ -247,7 +258,10 @@ void mainDialog::presenceChanged(const QString& bareJid, const QString& resource
     else if(onlineMap.contains(jid) && onlineMap.value(jid,false) == true)
     {
         m_tcpServer.sendOnline(jid,false);
+        if(!bareJid.isEmpty())
+            getDebugDialog(bareJid)->setBareJidOnline(false);
         onlineMap[jid] = false;
+        m_rosterItemModel.updatePresence(bareJid, presences);
     }
 
     QXmppPresence& pre = presences[resource];
@@ -394,6 +408,7 @@ DebugDialog *mainDialog::getDebugDialog(const QString &bareJid)
             m_debugDlgList[bareJid]->setDisplayName(QXmppUtils::jidToUser(bareJid));
         m_debugDlgList[bareJid]->setQXmppClient(&m_xmppClient);
         m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
+        connect(m_debugDlgList[bareJid],SIGNAL(updateSignal(QString,int)),SLOT(updateSignal(QString,int)));
     }
     return m_debugDlgList[bareJid];
 }
@@ -779,6 +794,10 @@ void mainDialog::createSettingsMenu()
     connect(tcpServer,SIGNAL(triggered()),SLOT(action_tcpServerSet()));
     m_settingsMenu->addAction(tcpServer);
 
+    QAction* configAction = new QAction(tr("配置"),ui->pushButton_settings);
+    connect(configAction,SIGNAL(triggered(bool)),SLOT(action_configParam()));
+    m_settingsMenu->addAction(configAction);
+
     QMenu* viewMenu = new QMenu(tr("视图"), ui->pushButton_settings);
     m_settingsMenu->addMenu(viewMenu);
 
@@ -851,8 +870,8 @@ void mainDialog::presenceReceived(const QXmppPresence& presence)
     QString from = presence.from();
 
     QString bareJid = QXmppUtils::jidToBareJid(from);
-    if(getDebugDialog(bareJid))
-        getDebugDialog(bareJid)->presenceReceived(presence);
+    //if(getDebugDialog(bareJid))
+        //getDebugDialog(bareJid)->presenceReceived(presence);
 
     QString message;
     switch(presence.type())
@@ -975,6 +994,7 @@ void mainDialog::errorClient(QXmppClient::Error error)
 void mainDialog::loadUserConfig()
 {
     m_tcpServer.setTcpPort(IniConfig::getTcpServerPort(m_xmppClient.configuration().jidBare()));
+    SqlHelper::initMySqlDataBase(m_xmppClient.configuration().jidBare());
 }
 
 void mainDialog::addAdvancedSettingsLabel()
@@ -1088,4 +1108,15 @@ void mainDialog::action_tcpServerSet()
     m_tcpSetDlg.setTcpServerStatus(m_tcpServer.isAccept());
     m_tcpSetDlg.show();
 
+}
+
+void mainDialog::action_configParam()
+{
+    m_configDlg.initConfigUIText();
+    m_configDlg.show();
+}
+
+void mainDialog::updateSignal(const QString &bareJid, int signal)
+{
+    m_rosterItemModel.updatePresence(bareJid, QString("信号强度：%1%").arg(signal));
 }

@@ -11,5 +11,6 @@
         <file>resource/icon.png</file>
         <file>resource/settingsButton.png</file>
         <file>resource/addButton.png</file>
+        <file>resource/EIOT.png</file>
     </qresource>
 </RCC>

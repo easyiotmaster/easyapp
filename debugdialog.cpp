@@ -48,7 +48,11 @@ QString DebugDialog::imagePathToHtml(const QString &path)
 
 QString DebugDialog::getDownloadFileName()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,tr("固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"BIN(*.bin)");
+    QString fileName;
+    if(m_downloadDev == STM32F10X)
+        fileName = QFileDialog::getOpenFileName(this,tr("STM32固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"BIN(*.bin)");
+    else
+        fileName = QFileDialog::getOpenFileName(this,tr("AVR固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"HEX(*.hex)");
     if(!fileName.isEmpty())
         IniConfig::setRemoteDownloadPath(fileName,m_client->configuration().jidBare());
     return fileName;
@@ -75,19 +79,27 @@ bool DebugDialog::isWaitingAtCmdAck()
         return false;
 }
 
-void DebugDialog::sendAtCmd(const QString &atStr,AT_CMD_TYPE at_type)
+void DebugDialog::sendAtCmd(const QString &atStr, AT_CMD_TYPE at_type, int sendType)
 {
-    if(isWaitingAtCmdAck())
+    if(sendType == 1)
     {
-        insertTextToTextBrowser(QString("cannot send:is waiting for last atcmd ack,last:%1,new:%2").arg(m_currentAtCmdStr).arg(atStr),TEXT_AT_CMD);
+        m_client->sendMessage(m_bareJid,atStr);
+        insertTextToTextBrowser(atStr,TEXT_SEND_MESSAGE);
     }
     else
     {
-        m_client->sendMessage(m_bareJid,atStr);
-        m_currentAtCmdType = at_type;
-        m_currentAtCmdStr = atStr;
-        insertTextToTextBrowser(atStr,TEXT_SEND_MESSAGE);
-        m_atTimer->start(AT_TIMEOUT);
+        if(isWaitingAtCmdAck())
+        {
+            insertTextToTextBrowser(QString("cannot send:is waiting for last atcmd ack,last:%1,new:%2").arg(m_currentAtCmdStr).arg(atStr),TEXT_AT_CMD);
+        }
+        else
+        {
+            m_client->sendMessage(m_bareJid,atStr);
+            m_currentAtCmdType = at_type;
+            m_currentAtCmdStr = atStr;
+            insertTextToTextBrowser(atStr,TEXT_SEND_MESSAGE);
+            m_atTimer->start(AT_TIMEOUT);
+        }
     }
 }
 
@@ -100,6 +112,7 @@ void DebugDialog::parseAtCmdString(const QString &str)
     if(isAt == 0)
     {
         QString atName = QString(at.name);
+        qDebug()<<"ATCMD:"<<atName<<str.length()<<str.size();
         if(atName == "DOWN")
         {
             parseAtDownCmd(at);
@@ -136,6 +149,10 @@ void DebugDialog::parseAtCmdString(const QString &str)
         {
             parseAtHEXCmd(at);
         }
+        else if(atName == "SIG")
+        {
+            parseAtSIGCmd(at);
+        }
     }
     else if(str == "OK")
     {
@@ -145,6 +162,9 @@ void DebugDialog::parseAtCmdString(const QString &str)
 
 void DebugDialog::parseAtDownCmd(ATCMD_DATA &ad)
 {
+    if(m_currentTask == TASK_NULL)
+        return;
+    qDebug()<<__func__<<ad.param_count;
     int down_type = -1;
     if(ad.param_count == 1)
     {
@@ -188,6 +208,7 @@ void DebugDialog::parseAtDownCmd(ATCMD_DATA &ad)
     else
         return;
 
+    qDebug()<<"down_cmd_type:"<<down_type;
     switch(down_type)
     {
     case 0://下载进度
@@ -252,6 +273,9 @@ void DebugDialog::parseAtDownCmd(ATCMD_DATA &ad)
 
 void DebugDialog::parseAtISPCmd(ATCMD_DATA &ad)
 {
+    if(m_currentTask == TASK_NULL)
+        return;
+
     int isp_type = -1;
     if(ad.param_count == 1)
     {
@@ -300,7 +324,7 @@ void DebugDialog::parseAtISPCmd(ATCMD_DATA &ad)
     case 1:
     {
         ui->pgb_download->setValue(100);
-        insertTextToTextBrowser("remote download success",getBrowserTextType(m_currentTask));
+        insertTextToTextBrowser("remote download successed",getBrowserTextType(m_currentTask));
         exitCurrentTask();
         break;
     }
@@ -317,6 +341,9 @@ void DebugDialog::parseAtISPCmd(ATCMD_DATA &ad)
 
 void DebugDialog::parseAtGETPICCmd(ATCMD_DATA &ad)
 {
+    if(m_currentTask == TASK_NULL)
+        return;
+
     int cmdType = -1;
     if(ad.param_count == 1)
     {
@@ -408,19 +435,40 @@ void DebugDialog::parseAtPICCmd(ATCMD_DATA &ad)
 
 void DebugDialog::parseAtSQLCmd(ATCMD_DATA &ad)
 {
-    if(ad.param_count == 1)
+    if(ad.param_count == 2)
     {
         int type0 = ad.param[0].type;
-        if(type0 != ATCMD_PARAM_STRING_TYPE)
+        if(type0 != ATCMD_PARAM_INTEGER_TYPE)
+            return;
+        int type1 = ad.param[1].type;
+        if(type1 != ATCMD_PARAM_STRING_TYPE)
             return;
     }
     else
         return;
 
     char out_buff[32*1024];
-    QString sql = QString(get_at_param_string(&ad,0,out_buff,sizeof(out_buff)));
+    int pn = get_at_param_int(&ad,0);
+    /*if(m_sqlPnResultMap.contains(pn))
+    {
+        sendSqlResp(pn,m_sqlPnResultMap[pn]);
+    }
+    else
+    {
+        if(m_sqlPnResultMap.size()>=32)
+            m_sqlPnResultMap.remove(m_sqlPnResultMap.firstKey());
+        bool ok;
+        QString sql = QString(get_at_param_string(&ad,1,out_buff,sizeof(out_buff)));
+        insertTextToTextBrowser("start query mysql database",TEXT_SQLQUERY);
+        insertTextToTextBrowser(SqlHelper::queryMySqlDatabase(sql,ok),TEXT_SQLQUERY);
+        m_sqlPnResultMap[pn] = ok;
+        sendSqlResp(pn,ok);
+    }*/
+    bool ok;
+    QString sql = QString(get_at_param_string(&ad,1,out_buff,sizeof(out_buff)));
     insertTextToTextBrowser("start query mysql database",TEXT_SQLQUERY);
-    insertTextToTextBrowser(SqlHelper::queryMySqlDatabase(sql),TEXT_SQLQUERY);
+    insertTextToTextBrowser(SqlHelper::queryMySqlDatabase(sql,ok),TEXT_SQLQUERY);
+    sendSqlResp(pn,ok);
 }
 
 void DebugDialog::parseAtFWCmd(ATCMD_DATA &ad)
@@ -545,6 +593,22 @@ void DebugDialog::parseAtHEXCmd(ATCMD_DATA &ad)
         insertTextToTextBrowser(tr("收到的字符串的长度不是偶数"),TEXT_HEX);
 }
 
+void DebugDialog::parseAtSIGCmd(ATCMD_DATA &ad)
+{
+    if(ad.param_count == 1)
+    {
+        int type0 = ad.param[0].type;
+        if(type0 != ATCMD_PARAM_INTEGER_TYPE)
+            return;
+    }
+    else
+        return;
+
+    int signal = get_at_param_int(&ad,0);
+    insertTextToTextBrowser(tr("信号强度：%1").arg(signal),TEXT_SIG);
+    emit updateSignal(m_bareJid,signal);
+}
+
 void DebugDialog::insertTextToTextBrowser(const QString &msg, DebugDialog::BROWSER_TEXT_TYPE type)
 {
     QDateTime dateTime = QDateTime::currentDateTime();
@@ -602,6 +666,14 @@ void DebugDialog::insertTextToTextBrowser(const QString &msg, DebugDialog::BROWS
         str = tr("[SENDHEX]:") + msg;
         ui->txb_message->insertHtml(stringToHtml(time + str,QColor(255,0,0)));//界面显示
         break;
+    case TEXT_SIG:
+        str = tr("[SIGNAL]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        break;
+    case TEXT_ONLINE:
+        str = tr("[ONLINE]:") + msg;
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,0)));
+        break;
     default:
         str = tr("[未知]:") + msg;
         ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,0,0)));//界面显示
@@ -648,7 +720,8 @@ void DebugDialog::createToolMenu()
 DebugDialog::DebugDialog(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::debugWindow),m_client(0),m_bareJid(""),m_displayName(""),m_downloadFile(0),
-    m_multiPart(0),m_toolMenu(0),m_downloadFileLen(0),m_downloadDev(STM32F10X),m_currentTask(TASK_NULL),m_currentAtCmdStr(""),m_currentAtCmdType(AT_NULL)
+    m_multiPart(0),m_toolMenu(0),m_downloadFileLen(0),m_downloadDev(STM32F10X),m_currentTask(TASK_NULL),m_currentAtCmdStr(""),m_currentAtCmdType(AT_NULL),
+    m_online(false)
 {
     ui->setupUi(this);
 
@@ -669,6 +742,9 @@ DebugDialog::DebugDialog(QWidget *parent) :
     m_atTimer = new QTimer;
     m_atTimer->setSingleShot(true);
     connect(m_atTimer,SIGNAL(timeout()),SLOT(atCmdTimeout()));
+
+    m_querySigTimer = new QTimer;
+    connect(m_querySigTimer,SIGNAL(timeout()),SLOT(querySignal()));
 
 }
 
@@ -749,6 +825,20 @@ void DebugDialog::presenceReceived(const QXmppPresence &presence)
     parseAtCmdString(presence.statusText());//解析AT指令
 }
 
+void DebugDialog::setBareJidOnline(bool online)
+{
+    m_online = online;
+    if(m_online)
+    {
+        insertTextToTextBrowser(tr("online"),TEXT_ONLINE);
+
+    }
+    else
+    {
+        insertTextToTextBrowser(tr("offline"),TEXT_ONLINE);
+    }
+}
+
 void DebugDialog::sendMessage()
 {
     if(ui->txb_send->toPlainText().isEmpty())
@@ -784,6 +874,16 @@ void DebugDialog::sendHexMessage()
 
 }
 
+void DebugDialog::sendSqlResp(int pn, bool ok)
+{
+    QString atCmd;
+    if(ok)
+        atCmd = QString("AT+SQLRESP=%1,1").arg(pn);
+    else
+        atCmd = QString("AT+SQLRESP=%1,0").arg(pn);
+    sendAtCmd(atCmd,AT_SQLRESP,1);
+}
+
 void DebugDialog::httpUpload(const QString &fileName)
 {
     insertTextToTextBrowser(tr("filename:%1").arg(fileName),getBrowserTextType(m_currentTask));
@@ -800,7 +900,7 @@ void DebugDialog::httpUpload(const QString &fileName)
     m_downloadFile->reset();
 
     //设置HTTP包头-----------------------------------------------------------------------------------------------------------------------------------------
-    QNetworkRequest request(QUrl("http://115.28.44.147/upload2/upload.php"));
+    QNetworkRequest request(QUrl(IniConfig::getFirmwareServer(m_client->configuration().jidBare())));//"http://115.28.44.147/upload2/upload.php"
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data;boundary=1qaz2wsx3edc4rfv5tgb6yhn7ujm8ik9ol0p");
 
     m_multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
@@ -885,7 +985,7 @@ void DebugDialog::httpUploadFinish()
     sendAtCmd(atString,AT_DOWN);
     ui->pgb_download->setValue(0);
     m_taskTimer->start(TASK_TIMEOUT);
-    qDebug()<<__func__<<m_currentTask;
+    //qDebug()<<__func__<<m_currentTask;
 }
 
 void DebugDialog::taskTimeout()
@@ -918,7 +1018,7 @@ void DebugDialog::taskTimeout()
 
 void DebugDialog::atCmdTimeout()
 {
-    insertTextToTextBrowser(QString("atcmd timeout:").arg(m_currentAtCmdStr),TEXT_AT_CMD);
+    insertTextToTextBrowser(QString("atcmd timeout:%1").arg(m_currentAtCmdStr),TEXT_AT_CMD);
     m_currentAtCmdStr = "";
     m_currentAtCmdType = AT_NULL;
 }
@@ -959,7 +1059,12 @@ void DebugDialog::remoteUpdate()
 
     m_toolMenu->setDisabled(true);
     m_currentTask = TASK_REMOTE_UPDATE;
-    httpUpload(fileName);
+    if(m_downloadDev == AVR)
+        turnHex2Bin(fileName);
+    else
+    {
+        httpUpload(fileName);
+    }
     m_taskTimer->start(TASK_TIMEOUT);
 }
 
@@ -1057,7 +1162,7 @@ void DebugDialog::geLEDTemplateFirmware()
     }
 
     insertTextToTextBrowser("download template file",TEXT_LED_UPDATE);
-    QNetworkReply * reply = m_manager->get(QNetworkRequest(QUrl("http://www.easy-iot.cc/download/easyled_firmware.bin")));
+    QNetworkReply * reply = m_manager->get(QNetworkRequest(QUrl(IniConfig::getLedTemplateFilePath(m_client->configuration().jidBare()))));//"http://www.easy-iot.cc/download/easyled_firmware.bin"
 
     connect(reply,SIGNAL(downloadProgress(qint64,qint64)),SLOT(httpDownloadProgress(qint64,qint64)));
     connect(reply,SIGNAL(readyRead()),SLOT(readHttpData()));
@@ -1099,6 +1204,36 @@ DebugDialog::BROWSER_TEXT_TYPE DebugDialog::getBrowserTextType(DebugDialog::TASK
     return text_type;
 }
 
+void DebugDialog::turnHex2Bin(const QString &fileName)
+{
+    m_turnFileName = fileName;
+    m_turnHexProcess = new QProcess;
+    QString programPath = "hex2bin.exe";
+    QStringList paramList;
+    paramList.append(programPath);
+    paramList.append(fileName);
+    connect(m_turnHexProcess,SIGNAL(error(QProcess::ProcessError)),SLOT(turnHexProcessError(QProcess::ProcessError)));
+    connect(m_turnHexProcess,SIGNAL(finished(int)),SLOT(turnHexFinished(int)));
+    m_turnHexProcess->start(programPath,paramList);
+}
+
+QString DebugDialog::turnFileType2Bin(const QString &filePathName)
+{
+
+    QString path = QFileInfo(filePathName).path()+'/';
+    QString fileName = QFileInfo(filePathName).fileName();
+    qDebug()<<path<<fileName;
+    QStringList strList = fileName.split('.');
+    if(strList.size()>1)
+        strList.removeLast();
+    fileName = "";
+    for(int i = 0;i < strList.size();++i)
+        fileName += strList[i]+'.';
+    fileName += "bin";
+
+    return path+fileName;
+}
+
 void DebugDialog::readHttpData()
 {
     m_taskTimer->start(TASK_TIMEOUT);
@@ -1107,6 +1242,42 @@ void DebugDialog::readHttpData()
     {
         m_ledTemplateFirmwareFile.write(reply->readAll());
     }
+}
+
+void DebugDialog::turnHexProcessError(QProcess::ProcessError)
+{
+    insertTextToTextBrowser("turn hex file to bin file failed",getBrowserTextType(m_currentTask));
+    exitCurrentTask();
+}
+
+void DebugDialog::turnHexFinished(int ret)
+{
+    if(m_currentTask != TASK_NULL)
+    {
+        qDebug()<<"process return:"<<ret;
+        m_taskTimer->start(TASK_TIMEOUT);
+        insertTextToTextBrowser("turn hex file to bin file successed",getBrowserTextType(m_currentTask));
+        //m_waitTurnFileCloseTimer = new QTimer;
+        //m_waitTurnFileCloseTimer->setSingleShot(true);
+        //connect(m_waitTurnFileCloseTimer,SIGNAL(timeout()),SLOT(waitTurnFileCloseTimeout()));
+        //m_waitTurnFileCloseTimer->start(30000);
+        //insertTextToTextBrowser("wait 5s for process release file",getBrowserTextType(m_currentTask));
+        httpUpload(turnFileType2Bin(m_turnFileName));
+    }
+    m_turnHexProcess->deleteLater();
+}
+
+void DebugDialog::waitTurnFileCloseTimeout()
+{
+    insertTextToTextBrowser("start upload file",getBrowserTextType(m_currentTask));
+    httpUpload(turnFileType2Bin(m_turnFileName));
+    m_waitTurnFileCloseTimer->deleteLater();
+}
+
+void DebugDialog::querySignal()
+{
+    QString atStr = "AT+SIG";
+    sendAtCmd(atStr,AT_QUERY_SIGNAL);
 }
 
 void DebugDialog::httpDownloadFinish()
@@ -1213,7 +1384,7 @@ void DebugDialog::imageDownloadFinish()
         return;
     }
     else
-        insertTextToTextBrowser("download success",TEXT_SHOWPIC);
+        insertTextToTextBrowser("download successed",TEXT_SHOWPIC);
 
     QString imageName = reply->url().fileName();
 

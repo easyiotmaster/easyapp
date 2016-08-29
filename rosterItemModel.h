@@ -37,6 +37,7 @@ public:
     rosterItem* getRosterItemFromBareJid(const QString& bareJid);
 
     void updatePresence(const QString& bareJid, const QMap<QString, QXmppPresence>& presences);
+    void updatePresence(const QString &bareJid,const QString presence);
     void updateRosterEntry(const QString& bareJid, const QXmppRosterIq::Item& rosterEntry);
     void updateAvatar(const QString& bareJid, const QImage& image);
     void updateName(const QString& bareJid, const QString& name);
