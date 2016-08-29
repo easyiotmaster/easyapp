@@ -29,12 +29,16 @@
 #include "utils.h"
 #include "global.h"
 #include "QString"
+#include <QIcon>
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+
     QApplication::setOrganizationName(QString("EasyIOT-%1.%2").arg(MAJOR_VERSION).arg(MINOR_VERSION));
     QApplication::setApplicationName("EasyIOT");
+    //QApplication::setWindowIcon()
 
     QDir dir;
     if(!dir.exists(getSettingsDir()))

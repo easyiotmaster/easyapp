@@ -78,7 +78,7 @@ void rosterListView::mousePressed(const QModelIndex& index)
         menu.setDefaultAction(&m_chat);
         //menu.addAction(&m_ota);
         menu.addAction(&m_profile);
-        menu.addAction(&m_removeContact);
+        //menu.addAction(&m_removeContact);
         menu.exec(QCursor::pos());
     }
 }

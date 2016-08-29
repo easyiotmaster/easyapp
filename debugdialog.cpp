@@ -1039,8 +1039,8 @@ void DebugDialog::remoteUpdate()
         return;
     }
     QStringList devList;
-    devList.append("STM32F10X");
-    devList.append("AVR Mega168/Arduino");
+    devList.append("STM32F103X");
+    devList.append("AVR Mega328/Arduino");
     bool ok;
     QString dev = QInputDialog::getItem(this,tr("选择设备型号"),tr("设备型号："),devList,0,false,&ok);
     if(!ok)
@@ -1048,7 +1048,7 @@ void DebugDialog::remoteUpdate()
 
     if(dev == "STM32F10X")
         m_downloadDev = STM32F10X;
-    else if(dev == "AVR Mega168/Arduino")
+    else if(dev == "AVR Mega328/Arduino")
         m_downloadDev = AVR;
     else
         return;
