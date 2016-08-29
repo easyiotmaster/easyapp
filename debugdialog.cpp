@@ -153,6 +153,10 @@ void DebugDialog::parseAtCmdString(const QString &str)
         {
             parseAtSIGCmd(at);
         }
+        else if(atName == "INFO")
+        {
+            parseAtINFOCmd(at);
+        }
     }
     else if(str == "OK")
     {
@@ -605,8 +609,25 @@ void DebugDialog::parseAtSIGCmd(ATCMD_DATA &ad)
         return;
 
     int signal = get_at_param_int(&ad,0);
-    insertTextToTextBrowser(tr("信号强度：%1").arg(signal),TEXT_SIG);
-    emit updateSignal(m_bareJid,signal);
+    //insertTextToTextBrowser(tr("信号强度：%1").arg(signal),TEXT_SIG);
+    //emit updateSignal(m_bareJid,signal,0);
+}
+
+void DebugDialog::parseAtINFOCmd(ATCMD_DATA &ad)
+{
+    if(ad.param_count == 2)
+    {
+        int type0 = ad.param[0].type;
+        if(type0 != ATCMD_PARAM_INTEGER_TYPE)
+            return;
+    }
+    else
+        return;
+
+    int signal = get_at_param_int(&ad,0);
+    int version = get_at_param_int(&ad,1);
+    //insertTextToTextBrowser(tr("信号强度：%1").arg(signal),TEXT_SIG);
+    emit updateSignal(m_bareJid,signal,version);
 }
 
 void DebugDialog::insertTextToTextBrowser(const QString &msg, DebugDialog::BROWSER_TEXT_TYPE type)

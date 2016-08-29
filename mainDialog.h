@@ -116,7 +116,7 @@ private slots:
     void action_tcpServerSet();
     void action_configParam();
 
-    void updateSignal(const QString & bareJid,int signal);
+    void updateSignal(const QString & bareJid,int signal,int version);
 public slots:
     void setTcpServerPort(quint16 port);//设置tcp服务器端口号
     bool startTcpServer();

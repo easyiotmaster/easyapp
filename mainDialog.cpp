@@ -408,7 +408,7 @@ DebugDialog *mainDialog::getDebugDialog(const QString &bareJid)
             m_debugDlgList[bareJid]->setDisplayName(QXmppUtils::jidToUser(bareJid));
         m_debugDlgList[bareJid]->setQXmppClient(&m_xmppClient);
         m_debugDlgList[bareJid]->setResource(m_xmppClient.rosterManager().getResources(bareJid));
-        connect(m_debugDlgList[bareJid],SIGNAL(updateSignal(QString,int)),SLOT(updateSignal(QString,int)));
+        connect(m_debugDlgList[bareJid],SIGNAL(updateSignal(QString,int,int)),SLOT(updateSignal(QString,int,int)));
     }
     return m_debugDlgList[bareJid];
 }
@@ -1116,7 +1116,9 @@ void mainDialog::action_configParam()
     m_configDlg.show();
 }
 
-void mainDialog::updateSignal(const QString &bareJid, int signal)
+void mainDialog::updateSignal(const QString &bareJid, int signal , int version)
 {
-    m_rosterItemModel.updatePresence(bareJid, QString("信号强度：%1%").arg(signal));
+    char strbuf[32];
+    snprintf(strbuf,sizeof(strbuf),"Sig:%d Ver:%d",signal,version);
+    m_rosterItemModel.updatePresence(bareJid, QString(strbuf));
 }

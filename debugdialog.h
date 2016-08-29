@@ -121,6 +121,7 @@ private:
     void    parseAtOKCmd();     //解析AT OK指令
     void    parseAtHEXCmd(ATCMD_DATA &ad);      //解析AT HEX指令
     void    parseAtSIGCmd(ATCMD_DATA &ad);      //解析AT SIG指令
+    void    parseAtINFOCmd(ATCMD_DATA &ad);      //解析AT INFO指令
     void    insertTextToTextBrowser(const QString &msg,BROWSER_TEXT_TYPE type);//插入消息到文本框
     void    insertImgToBrowser(const QString &str); //收到图片类型的BASE64数据
     void    createToolMenu();           //创建工具菜单
@@ -146,7 +147,7 @@ public:
     void presenceReceived(const QXmppPresence &presence);
     void setBareJidOnline(bool online);
 signals:
-    void updateSignal(const QString & bareJid,int signal);
+    void updateSignal(const QString & bareJid,int signal , int version);
 public slots:
     void sendMessage();//点击发送按钮
     void sendHexMessage();//发送AT+HEX指令
