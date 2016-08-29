@@ -641,63 +641,63 @@ void DebugDialog::insertTextToTextBrowser(const QString &msg, DebugDialog::BROWS
     {
     case TEXT_RECV_MESSAGE:
         str = tr("[接受MESSAGE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,0,255)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::blue)));//界面显示
         break;
     case TEXT_SEND_MESSAGE:
         str = tr("[发送MESSAGE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(255,0,0)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::red)));//界面显示
         break;
     case TEXT_PRESENCE_TEXT:
         str = tr("[接收PRESENCE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,0)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::blue)));//界面显示
         break;
     case TEXT_REMOTE_UPDATE:
         str = tr("[REMOTEDOWNLOAD]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     case TEXT_LED_UPDATE:
         str = tr("[LEDUPDATE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     case TEXT_OTA_UPDATE:
         str = tr("[OTAUPDATE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     case TEXT_GETPIC:
         str = tr("[GETPIC]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     case TEXT_AT_CMD:
         str = tr("[ATCMD]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     case TEXT_SHOWPIC:
         str = tr("[SHOWPIC]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     case TEXT_SQLQUERY:
         str = tr("[SQLQUERY]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     case TEXT_HEX:
         str = tr("[HEX]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     case TEXT_SENDHEX:
         str = tr("[SENDHEX]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(255,0,0)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     case TEXT_SIG:
         str = tr("[SIGNAL]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,255)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     case TEXT_ONLINE:
         str = tr("[ONLINE]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,255,0)));
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));
         break;
     default:
         str = tr("[未知]:") + msg;
-        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(0,0,0)));//界面显示
+        ui->txb_message->insertHtml(stringToHtml(time + str,QColor(Qt::black)));//界面显示
         break;
     }
     ui->txb_message->moveCursor(QTextCursor::End);
