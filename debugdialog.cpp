@@ -50,9 +50,17 @@ QString DebugDialog::getDownloadFileName()
 {
     QString fileName;
     if(m_downloadDev == STM32F10X)
+    {
         fileName = QFileDialog::getOpenFileName(this,tr("STM32固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"BIN(*.bin)");
+        //m_selectDownFileDialog->setFilter("BIN(*.bin)");
+       // m_selectDownFileDialog->open();
+    }
     else
+    {
         fileName = QFileDialog::getOpenFileName(this,tr("AVR固件"),IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()),"HEX(*.hex)");
+        //m_selectDownFileDialog->setFilter("BIN(*.bin)");
+    }
+   // m_selectDownFileDialog->open();
     if(!fileName.isEmpty())
         IniConfig::setRemoteDownloadPath(fileName,m_client->configuration().jidBare());
     return fileName;
@@ -767,6 +775,12 @@ DebugDialog::DebugDialog(QWidget *parent) :
     m_querySigTimer = new QTimer;
     connect(m_querySigTimer,SIGNAL(timeout()),SLOT(querySignal()));
 
+
+    m_selectFileDialog = new QFileDialog(this);
+    m_selectFileDialog->setWindowModality(Qt::WindowModal);
+    m_selectFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+    connect(m_selectFileDialog,SIGNAL(fileSelected(QString)),SLOT(fileSelected(QString)));
+
 }
 
 DebugDialog::~DebugDialog()
@@ -1067,26 +1081,46 @@ void DebugDialog::remoteUpdate()
     if(!ok)
         return;
 
-    if(dev == "STM32F10X")
+    if(dev == "STM32F103X")
         m_downloadDev = STM32F10X;
     else if(dev == "AVR Mega328/Arduino")
         m_downloadDev = AVR;
     else
         return;
 
-    QString fileName = getDownloadFileName();
-    if(fileName.isEmpty())
-        return;
-
-    m_toolMenu->setDisabled(true);
-    m_currentTask = TASK_REMOTE_UPDATE;
-    if(m_downloadDev == AVR)
-        turnHex2Bin(fileName);
+    if(m_downloadDev == STM32F10X)
+        m_selectFileDialog->setWindowTitle(tr("STM32固件"));
+    else if(m_downloadDev == AVR)
+        m_selectFileDialog->setWindowTitle(tr("AVR固件"));
     else
-    {
-        httpUpload(fileName);
-    }
-    m_taskTimer->start(TASK_TIMEOUT);
+        m_selectFileDialog->setWindowTitle(tr("固件"));
+
+    m_selectFileDialog->setDirectory(IniConfig::getRemoteDownloadPath(m_client->configuration().jidBare()));
+
+    if(m_downloadDev == STM32F10X)
+        m_selectFileDialog->setNameFilter("BIN(*.bin)");
+    else
+        m_selectFileDialog->setNameFilter("BIN(*.bin)");
+
+    m_selectFileDialog->open();
+    m_currentTask = TASK_REMOTE_UPDATE;
+
+//    if(!fileName.isEmpty())
+//        IniConfig::setRemoteDownloadPath(fileName,m_client->configuration().jidBare());
+//    return fileName;
+
+//    if(fileName.isEmpty())
+//        return;
+
+//    m_toolMenu->setDisabled(true);
+//    m_currentTask = TASK_REMOTE_UPDATE;
+//    if(m_downloadDev == AVR)
+//        turnHex2Bin(fileName);
+//    else
+//    {
+//        httpUpload(fileName);
+//    }
+//    m_taskTimer->start(TASK_TIMEOUT);
 }
 
 void DebugDialog::updateLEDFirmware()
@@ -1096,16 +1130,27 @@ void DebugDialog::updateLEDFirmware()
         insertTextToTextBrowser("is performing other task",TEXT_REMOTE_UPDATE);
         return;
     }
-    QString ledFileName = getLedFileName();
-    if(ledFileName.isEmpty())
-    {
-        insertTextToTextBrowser("'led firmware' filename is empty",TEXT_LED_UPDATE);
-        return;
-    }
-    m_ledFirmwareFile.setFileName(ledFileName);
-    m_toolMenu->setDisabled(true);
+//    QString ledFileName = getLedFileName();
+
+//    QString fileName = QFileDialog::getOpenFileName(this,tr("LED固件"),,"BIN(*.*)");
+//    IniConfig::setLedFilePath(fileName,m_client->configuration().jidBare());
+//    return fileName;
+
+    m_selectFileDialog->setWindowTitle(tr("LED固件"));
+    m_selectFileDialog->setDirectory(IniConfig::getLedFilePath(m_client->configuration().jidBare()));
+    m_selectFileDialog->setNameFilter("BIN(*.bin)");
+    m_selectFileDialog->open();
     m_currentTask = TASK_LED_UPDATE;
-    geLEDTemplateFirmware();
+
+//    if(ledFileName.isEmpty())
+//    {
+//        insertTextToTextBrowser("'led firmware' filename is empty",TEXT_LED_UPDATE);
+//        return;
+//    }
+//    m_ledFirmwareFile.setFileName(ledFileName);
+//    m_toolMenu->setDisabled(true);
+
+//    geLEDTemplateFirmware();
 }
 
 void DebugDialog::getPic()
@@ -1149,15 +1194,22 @@ void DebugDialog::otaUpdate()
         insertTextToTextBrowser("is performing other task",TEXT_REMOTE_UPDATE);
         return;
     }
-    QString fileName = QFileDialog::getOpenFileName(this,tr("选择需要OTA更新的文件"),IniConfig::getOtaFilePath(m_client->configuration().jidBare()),"*.bin");
-    if(fileName.isEmpty())
-        return;
-    IniConfig::setOtaFilePath(fileName,m_client->configuration().jidBare());
+   // QString fileName = QFileDialog::getOpenFileName(this,tr("选择需要OTA更新的文件"),IniConfig::getOtaFilePath(m_client->configuration().jidBare()),"*.bin");
 
-    m_toolMenu->setDisabled(true);
+    m_selectFileDialog->setWindowTitle(tr("选择需要OTA更新的文件"));
+    m_selectFileDialog->setDirectory(IniConfig::getOtaFilePath(m_client->configuration().jidBare()));
+    m_selectFileDialog->setNameFilter("BIN(*.bin)");
+    m_selectFileDialog->open();
     m_currentTask = TASK_OTA_UPDATE;
-    httpUpload(fileName);
-    m_taskTimer->start(TASK_TIMEOUT);
+
+//    if(fileName.isEmpty())
+//        return;
+//    IniConfig::setOtaFilePath(fileName,m_client->configuration().jidBare());
+
+//    m_toolMenu->setDisabled(true);
+//    m_currentTask = TASK_OTA_UPDATE;
+//    httpUpload(fileName);
+//    m_taskTimer->start(TASK_TIMEOUT);
 }
 
 void DebugDialog::geLEDTemplateFirmware()
@@ -1278,11 +1330,6 @@ void DebugDialog::turnHexFinished(int ret)
         qDebug()<<"process return:"<<ret;
         m_taskTimer->start(TASK_TIMEOUT);
         insertTextToTextBrowser("turn hex file to bin file successed",getBrowserTextType(m_currentTask));
-        //m_waitTurnFileCloseTimer = new QTimer;
-        //m_waitTurnFileCloseTimer->setSingleShot(true);
-        //connect(m_waitTurnFileCloseTimer,SIGNAL(timeout()),SLOT(waitTurnFileCloseTimeout()));
-        //m_waitTurnFileCloseTimer->start(30000);
-        //insertTextToTextBrowser("wait 5s for process release file",getBrowserTextType(m_currentTask));
         httpUpload(turnFileType2Bin(m_turnFileName));
     }
     m_turnHexProcess->deleteLater();
@@ -1299,6 +1346,54 @@ void DebugDialog::querySignal()
 {
     QString atStr = "AT+SIG";
     sendAtCmd(atStr,AT_QUERY_SIGNAL);
+}
+
+void DebugDialog::fileSelected(const QString &fileName)
+{
+    if(m_currentTask == TASK_REMOTE_UPDATE)
+    {
+        if(!fileName.isEmpty())
+            IniConfig::setRemoteDownloadPath(fileName,m_client->configuration().jidBare());
+        else
+        {
+            m_currentTask = TASK_NULL;
+            return;
+        }
+
+        m_toolMenu->setDisabled(true);
+
+        if(m_downloadDev == AVR)
+            turnHex2Bin(fileName);
+        else
+        {
+            httpUpload(fileName);
+        }
+        m_taskTimer->start(TASK_TIMEOUT);
+    }
+    else if(m_currentTask == TASK_LED_UPDATE)
+    {
+        if(fileName.isEmpty())
+        {
+            insertTextToTextBrowser("'led firmware' filename is empty",TEXT_LED_UPDATE);
+            return;
+        }
+        IniConfig::setLedFilePath(fileName,m_client->configuration().jidBare());
+        m_ledFirmwareFile.setFileName(fileName);
+        m_toolMenu->setDisabled(true);
+
+        geLEDTemplateFirmware();
+    }
+    else if(m_currentTask == TASK_OTA_UPDATE)
+    {
+        if(fileName.isEmpty())
+            return;
+        IniConfig::setOtaFilePath(fileName,m_client->configuration().jidBare());
+
+        m_toolMenu->setDisabled(true);
+        m_currentTask = TASK_OTA_UPDATE;
+        httpUpload(fileName);
+        m_taskTimer->start(TASK_TIMEOUT);
+    }
 }
 
 void DebugDialog::httpDownloadFinish()

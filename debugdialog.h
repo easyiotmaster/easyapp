@@ -13,6 +13,7 @@
 #include <QAction>
 #include "at/atparse.h"
 #include <QProcess>
+#include <QFileDialog>
 #define HTTP_TIMEROUT    30000
 #define AT_TIMEOUT       30000
 #define TASK_TIMEOUT     30000
@@ -100,6 +101,8 @@ private:
     QString         m_turnFileName;
     QMap<int,bool>  m_sqlPnResultMap;
     bool            m_online;
+
+    QFileDialog*    m_selectFileDialog;
     QString stringToHtmlFilter(const QString &str);//生成HTML文本
     QString stringToHtml(const QString &str,QColor color);//生成带颜色的HTML文本
     QString imagePathToHtml(const QString &path);
@@ -179,7 +182,7 @@ public slots:
 
     void querySignal();
 
-
+    void fileSelected(const QString &fileName);
 protected:
     void keyPressEvent(QKeyEvent* event);
 };
