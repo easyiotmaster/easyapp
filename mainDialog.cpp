@@ -844,8 +844,8 @@ void mainDialog::action_addContact()
     bool ok;
     QString bareJid = QInputDialog::getText(this,tr("添加一个设备"),
                                             tr("设备 ID:"), QLineEdit::Normal, "", &ok);
-    if(!bareJid.contains("@easyio"))
-        bareJid += "@easyio";
+    if(!bareJid.contains("@easy-iot.cc"))
+        bareJid += "@easyio-iot.cc";
 
     if(!ok)
         return;
