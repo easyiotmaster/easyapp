@@ -712,6 +712,10 @@ void mainDialog::loadAccounts()
 
         if(!passwd.isEmpty())
             ui->checkBox_rememberPasswd->setChecked(true);
+    }else{
+        //如果第一次登陆，则写入一个缺省信息
+        ui->lineEdit_host->setText("easy-iot.cc");
+        ui->lineEdit_port->setText("5222");
     }
 }
 
